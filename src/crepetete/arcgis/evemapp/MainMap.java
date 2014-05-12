@@ -169,7 +169,6 @@ public class MainMap extends Activity implements LocationListener {
 		      Map<String,Object> attr = new HashMap<String, Object>();
 		      attr.put("name", "Patrick van de Graaf");
 		      
-		      
 		   // create a graphic with the geometry and marker symbol
 		      Graphic testGraphic = new Graphic(testPersoon, simpleMarker, attr);      
 		          
