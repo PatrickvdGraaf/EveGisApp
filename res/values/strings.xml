@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="hello">Hello World, HelloWorldActivity!</string>
+    <string name="app_name">HelloWorld</string>
+    <!-- map service -->
+    <string name="basemap_url">http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer</string>
+    <!-- geocode service -->
+    <string name="geocode_url">http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer</string>
+    <!-- text for geocode label -->
+    <string name="geocode_label">Enter a USA input address: house #, street, city, state, zip</string>
+    <!-- button string -->
+    <string name="button_locate">Go</string>
+    <!-- address hint -->
+    <string name="address">380 New York St Redlands CA 92373</string>
+    <string name="sluit">Sluit</string>
+    <string name="inf_dialog_image">Type of point</string>
+    <string name="inf_dialog_button">Sluit</string>
+    <string name="inlogscreen_title">Vul hier uw ID in:</string>
+    <string name="inlogscreen_button">Log in</string>
+    <string name="title_activity_log_in">LogInActivity</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="backend_site">http://web.insidion.com/request/index.php</string>
+
+</resources>
