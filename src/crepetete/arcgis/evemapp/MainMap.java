@@ -35,11 +35,10 @@ import com.esri.android.map.event.OnSingleTapListener;
 import com.esri.core.geometry.Point;
 import com.esri.core.map.Graphic;
 import com.esri.core.symbol.SimpleMarkerSymbol;
-
-import crepetete.samples.helloworld.R;
+import crepetete.arcgis.evemapp.R;
 
 public class MainMap extends Activity implements LocationListener {
-	
+		
 	final Context context = this;
 	
 	private MapView mMapView;
@@ -51,12 +50,10 @@ public class MainMap extends Activity implements LocationListener {
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Intent intentLogIn = getIntent();
+		setContentView(R.layout.main);
 		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 		StrictMode.setThreadPolicy(policy);
-		setContentView(R.layout.main);
 		user = new User();
-		user.setMyId(Integer.parseInt(intentLogIn.getStringExtra(LogInActivity.USER_ID)));
 		mMapView = (MapView)findViewById(R.id.map);
 		// Voeg een dynamische layer toe aan mMapView
 		mMapView.addLayer(new ArcGISTiledMapServiceLayer("" +"http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"));
@@ -65,29 +62,30 @@ public class MainMap extends Activity implements LocationListener {
 		createMapViewTapList();
 		mMapView.addLayer(gl);
 //		mMapView.setMinScale(50000);
-		LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
-		boolean enabled = service.isProviderEnabled(LocationManager.GPS_PROVIDER);
+			
+			LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
+			boolean enabled = service.isProviderEnabled(LocationManager.GPS_PROVIDER);
 
-		// check if enabled and if not send user to the GSP settings
-		// Better solution would be to display a dialog and suggesting to 
-		// go to the settings
-		if (!enabled) {
-		  Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-		  startActivity(intent);
-		} 
-		
-		// Get the location manager
-	    locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+			// check if enabled and if not send user to the GSP settings
+			// Better solution would be to display a dialog and suggesting to 
+			// go to the settings
+			if (!enabled) {
+			  Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+			  startActivity(intent);
+			} 
+			
+			// Get the location manager
+		    locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-	 // Define the criteria how to select the locatioin provider -> use default
-	    Criteria criteria = new Criteria();
-	    provider = locationManager.getBestProvider(criteria, false);
-	    Location location = locationManager.getLastKnownLocation(provider);
-	  
-	    
-	 // Initialize the location fields
-	    createPoint(location);	        
-	  }
+		 // Define the criteria how to select the locatioin provider -> use default
+		    Criteria criteria = new Criteria();
+		    provider = locationManager.getBestProvider(criteria, false);
+		    Location location = locationManager.getLastKnownLocation(provider);
+		  
+		    
+		 // Initialize the location fields
+		    createPoint(location);	 
+	}
 
 	protected void onPause() {
 		super.onPause();
