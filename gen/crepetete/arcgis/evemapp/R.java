@@ -240,22 +240,20 @@ containing a value of this type.
         public static final int com_facebook_usersettingsfragment_login_button=0x7f040017;
         public static final int com_facebook_usersettingsfragment_logo_image=0x7f040015;
         public static final int com_facebook_usersettingsfragment_profile_name=0x7f040016;
-        public static final int dialogButtonOK=0x7f04001d;
-        public static final int image=0x7f04001b;
+        public static final int dialogButtonOK=0x7f04001b;
+        public static final int image=0x7f040019;
         public static final int large=0x7f040002;
-        public static final int login_button=0x7f040020;
-        public static final int login_id_field=0x7f04001e;
-        public static final int login_spinner=0x7f040021;
-        public static final int login_title=0x7f04001f;
-        public static final int map=0x7f040022;
+        public static final int login_button=0x7f04001e;
+        public static final int login_id_field=0x7f04001c;
+        public static final int login_spinner=0x7f04001f;
+        public static final int login_title=0x7f04001d;
+        public static final int map=0x7f040020;
         public static final int normal=0x7f040001;
         public static final int picker_subtitle=0x7f040012;
-        public static final int profile_name=0x7f040023;
-        public static final int selectionFragment=0x7f040018;
+        public static final int profile_name=0x7f040021;
         public static final int small=0x7f040000;
-        public static final int splashFragment=0x7f040019;
-        public static final int text=0x7f04001c;
-        public static final int userSettingsFragment=0x7f04001a;
+        public static final int text=0x7f04001a;
+        public static final int welcome=0x7f040018;
     }
     public static final class layout {
         public static final int com_facebook_friendpickerfragment=0x7f030000;
@@ -279,13 +277,10 @@ containing a value of this type.
         public static final int splash=0x7f030012;
     }
     public static final class string {
-        public static final int action_settings=0x7f070025;
-        /**  address hint 
-         */
-        public static final int address=0x7f07001e;
-        public static final int app_id=0x7f070029;
+        public static final int action_settings=0x7f070024;
+        public static final int app_id=0x7f070028;
         public static final int app_name=0x7f070019;
-        public static final int backend_site=0x7f070027;
+        public static final int backend_site=0x7f070026;
         /**  map service 
          */
         public static final int basemap_url=0x7f07001a;
@@ -323,14 +318,14 @@ containing a value of this type.
         /**  geocode service 
          */
         public static final int geocode_url=0x7f07001b;
-        public static final int hello_world=0x7f070026;
-        public static final int inf_dialog_button=0x7f070021;
-        public static final int inf_dialog_image=0x7f070020;
-        public static final int loginscreen_button=0x7f070023;
-        public static final int loginscreen_title=0x7f070022;
-        public static final int settings=0x7f070028;
-        public static final int sluit=0x7f07001f;
-        public static final int title_activity_log_in=0x7f070024;
+        public static final int hello_world=0x7f070025;
+        public static final int inf_dialog_button=0x7f070020;
+        public static final int inf_dialog_image=0x7f07001f;
+        public static final int loginscreen_button=0x7f070022;
+        public static final int loginscreen_title=0x7f070021;
+        public static final int settings=0x7f070027;
+        public static final int sluit=0x7f07001e;
+        public static final int title_activity_log_in=0x7f070023;
     }
     public static final class style {
         public static final int com_facebook_loginview_default_style=0x7f080000;

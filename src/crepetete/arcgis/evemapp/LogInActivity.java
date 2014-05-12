@@ -16,9 +16,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.http.client.ClientProtocolException;
+
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.view.View;
@@ -58,25 +61,8 @@ public class LogInActivity extends Activity {
 			public void onClick(View arg0) {
 				if(!id_field.getText().toString().matches("")){
 					id = id_field.getText().toString();
-					try {
-						Map<String, String> params = makeParams();
-						LogIn(id, params);
-						String[] response = readMultipleLinesRespone();
-						if(response[0].equals("true")){
-							//Start nieuwe intent
-						}else if(response[0].equals("false")){
-							errorMessage = "Er is een foute ID ingevoerd";
-							showErrorDialog(errorMessage);
-						}else{
-							errorMessage = "Er was geen of een foute response van de server";
-							showErrorDialog(errorMessage);
-						}
-					} catch (ClientProtocolException e) {
-						e.printStackTrace();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-					
+					AsyncTaskRunner runner = new AsyncTaskRunner();
+					runner.execute();					
 				}else{
 					errorMessage = "Er is geen ID ingevoerd";
 					showErrorDialog(errorMessage);
@@ -84,6 +70,57 @@ public class LogInActivity extends Activity {
 			}
 		});
 	}
+	
+	private class AsyncTaskRunner extends AsyncTask<String, String, String> {
+
+		  private String resp;
+
+		  @Override
+		  protected String doInBackground(String... params) {
+		   publishProgress("Calling..."); // Calls onProgressUpdate()
+		   try {
+				Map<String, String> postParams = makeParams();
+				LogIn(id, postParams);
+				String[] response = readMultipleLinesRespone();
+				if(response[0].equals("true")){
+					Intent myIntent = new Intent(LogInActivity.this, MainMap.class);
+					myIntent.putExtra("id", id); 
+					LogInActivity.this.startActivity(myIntent);
+				}else if(response[0].equals("false")){
+					errorMessage = "Er is een foute ID ingevoerd";
+					showErrorDialog(errorMessage);
+				}else{
+					errorMessage = "Er was geen of een foute response van de server";
+					showErrorDialog(errorMessage);
+				}
+			} catch (ClientProtocolException e) {
+				e.printStackTrace();
+				resp = e.getMessage();
+			} catch (IOException e) {
+				e.printStackTrace();
+				resp = e.getMessage();
+			}
+		   return resp;
+		  }
+
+		  @Override
+		  protected void onPostExecute(String result) {
+		   // execution of result of Long time consuming operation
+		  }
+
+		  @Override
+		  protected void onPreExecute() {
+		   // Things to be done before execution of long running operation. For
+		   // example showing ProgessDialog
+		  }
+
+		  @Override
+		  protected void onProgressUpdate(String... text) {
+		   // Things to be done while execution of long running operation is in
+		   // progress. For example updating ProgessDialog
+		  }
+		 }
+		
 	
 	public HttpURLConnection LogIn(String id, Map<String, String> params) throws ClientProtocolException, IOException{
 		login_spinner.setVisibility(View.VISIBLE);

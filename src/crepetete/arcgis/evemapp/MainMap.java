@@ -54,6 +54,8 @@ public class MainMap extends Activity implements LocationListener {
 		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 		StrictMode.setThreadPolicy(policy);
 		user = new User();
+		Intent intent = getIntent();
+		user.setMyId(Integer.parseInt(intent.getStringExtra("id")));
 		mMapView = (MapView)findViewById(R.id.map);
 		// Voeg een dynamische layer toe aan mMapView
 		mMapView.addLayer(new ArcGISTiledMapServiceLayer("" +"http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"));
@@ -70,8 +72,8 @@ public class MainMap extends Activity implements LocationListener {
 			// Better solution would be to display a dialog and suggesting to 
 			// go to the settings
 			if (!enabled) {
-			  Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-			  startActivity(intent);
+			  Intent intentLocSource = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+			  startActivity(intentLocSource);
 			} 
 			
 			// Get the location manager
