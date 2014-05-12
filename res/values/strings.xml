@@ -9,8 +9,6 @@
     <string name="geocode_label">Enter a USA input address: house #, street, city, state, zip</string>
     <!-- button string -->
     <string name="button_locate">Go</string>
-    <!-- address hint -->
-    <string name="address">380 New York St Redlands CA 92373</string>
     <string name="sluit">Sluit</string>
     <string name="inf_dialog_image">Type of point</string>
     <string name="inf_dialog_button">Sluit</string>
