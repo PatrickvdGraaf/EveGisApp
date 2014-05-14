@@ -45,6 +45,7 @@ public class LogInActivity extends Activity {
 	private EditText id_field;
 	private ProgressBar login_spinner;
 	private String id;
+	private String[] response;
 	private String errorMessage;
 
 	@Override
@@ -59,12 +60,13 @@ public class LogInActivity extends Activity {
 		login_spinner.setVisibility(View.GONE);
 		login.setOnClickListener(new View.OnClickListener(){
 			public void onClick(View arg0) {
-				if(!id_field.getText().toString().matches("")){
+				if(!id_field.getText().toString().matches("") || id_field.getText().toString().contains(" ")){
+					login_spinner.setVisibility(View.VISIBLE);
 					id = id_field.getText().toString();
 					AsyncTaskRunner runner = new AsyncTaskRunner();
 					runner.execute();					
 				}else{
-					errorMessage = "Er is geen ID ingevoerd";
+					errorMessage = "Er is geen of een ongeldige ID ingevoerd";
 					showErrorDialog(errorMessage);
 				}
 			}
@@ -73,57 +75,38 @@ public class LogInActivity extends Activity {
 	
 	private class AsyncTaskRunner extends AsyncTask<String, String, String> {
 
-		  private String resp;
-
 		  @Override
 		  protected String doInBackground(String... params) {
-		   publishProgress("Calling..."); // Calls onProgressUpdate()
-		   try {
-				Map<String, String> postParams = makeParams();
-				LogIn(id, postParams);
-				String[] response = readMultipleLinesRespone();
-				if(response[0].equals("true")){
+			  String postResult;
+			   try {
+					LogIn(id);
+					postResult = response[0];
+				} catch (ClientProtocolException e) {
+					e.printStackTrace();
+					postResult = e.getMessage();
+				} catch (IOException e) {
+					e.printStackTrace();
+					postResult = e.getMessage();
+				}
+			   return postResult;
+		  }
+		 @Override
+		 protected void onPostExecute(String result) {
+				if(result.equals("true")){
 					Intent myIntent = new Intent(LogInActivity.this, MainMap.class);
 					myIntent.putExtra("id", id); 
 					LogInActivity.this.startActivity(myIntent);
-				}else if(response[0].equals("false")){
+				}else if(result.equals("false")){
 					errorMessage = "Er is een foute ID ingevoerd";
-					showErrorDialog(errorMessage);
 				}else{
-					errorMessage = "Er was geen of een foute response van de server";
-					showErrorDialog(errorMessage);
+					errorMessage = "Er was geen of een foute response van de server: " + result;
 				}
-			} catch (ClientProtocolException e) {
-				e.printStackTrace();
-				resp = e.getMessage();
-			} catch (IOException e) {
-				e.printStackTrace();
-				resp = e.getMessage();
-			}
-		   return resp;
-		  }
-
-		  @Override
-		  protected void onPostExecute(String result) {
-		   // execution of result of Long time consuming operation
-		  }
-
-		  @Override
-		  protected void onPreExecute() {
-		   // Things to be done before execution of long running operation. For
-		   // example showing ProgessDialog
-		  }
-
-		  @Override
-		  protected void onProgressUpdate(String... text) {
-		   // Things to be done while execution of long running operation is in
-		   // progress. For example updating ProgessDialog
-		  }
-		 }
-		
-	
-	public HttpURLConnection LogIn(String id, Map<String, String> params) throws ClientProtocolException, IOException{
-		login_spinner.setVisibility(View.VISIBLE);
+				showErrorDialog(errorMessage);
+				login_spinner.setVisibility(View.GONE);
+		    }
+	}
+			
+	public HttpURLConnection LogIn(String id) throws ClientProtocolException, IOException{
 		URL url = new URL(getString(R.string.backend_site));
         httpConn = (HttpURLConnection) url.openConnection();
         httpConn.setUseCaches(false);
@@ -131,28 +114,29 @@ public class LogInActivity extends Activity {
         httpConn.setDoInput(true); // true indicates the server returns response
  
         StringBuffer requestParams = new StringBuffer();
- 
-        if (params != null && params.size() > 0) {
- 
+        Map<String, String> postParams = makeParams();
+        if (postParams != null && postParams.size() > 0) {
+        	
             httpConn.setDoOutput(true); // true indicates POST request
- 
+			System.out.println(postParams);
             // creates the params string, encode them using URLEncoder
-            Iterator<String> paramIterator = (params).keySet().iterator();
+            Iterator<String> paramIterator = (postParams).keySet().iterator();
             while (paramIterator.hasNext()) {
                 String key = paramIterator.next();
-                String value = params.get(key);
+                String value = postParams.get(key);
                 requestParams.append(URLEncoder.encode(key, "UTF-8"));
                 requestParams.append("=").append(
                         URLEncoder.encode(value, "UTF-8"));
                 requestParams.append("&");
             }
- 
+            System.out.println(requestParams.toString());
             // sends POST data
             OutputStreamWriter writer = new OutputStreamWriter(
                     httpConn.getOutputStream());
             writer.write(requestParams.toString());
             writer.flush();
         }
+        response = readMultipleLinesRespone();
  
         return httpConn;
     }
@@ -163,7 +147,7 @@ public class LogInActivity extends Activity {
 				params.put("id", id);
 				params.put("type", "register");
 				params.put("friends", "");
-				params.put("privacysetting", "FULL");
+				params.put("privacysetting", "full");
 				return params;
 	}
 	
@@ -175,7 +159,7 @@ public class LogInActivity extends Activity {
 			TextView text = (TextView) dialog.findViewById(R.id.text);
 			text.setText(errorMessage);
 			ImageView image = (ImageView) dialog.findViewById(R.id.image);
-			image.setVisibility(View.GONE);
+			image.setVisibility(View.INVISIBLE);
 
 			Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
 			// if button is clicked, close the custom dialog

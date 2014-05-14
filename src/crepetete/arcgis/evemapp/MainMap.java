@@ -63,7 +63,6 @@ public class MainMap extends Activity implements LocationListener {
 		//Voeg de onclicklistener toe
 		createMapViewTapList();
 		mMapView.addLayer(gl);
-//		mMapView.setMinScale(50000);
 			
 			LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
 			boolean enabled = service.isProviderEnabled(LocationManager.GPS_PROVIDER);
@@ -83,7 +82,6 @@ public class MainMap extends Activity implements LocationListener {
 		    Criteria criteria = new Criteria();
 		    provider = locationManager.getBestProvider(criteria, false);
 		    Location location = locationManager.getLastKnownLocation(provider);
-		  
 		    
 		 // Initialize the location fields
 		    createPoint(location);	 
@@ -177,8 +175,10 @@ public class MainMap extends Activity implements LocationListener {
 	   
 		    } else if (!isOnline()){
 		    	System.out.println("Er is geen internetverbinding.");
-		    }else{
-		    	System.out.println("fail");
+		    }else if(location == null){
+		    	System.out.println("fail on location");
+		    	Intent intentLocSource = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+				startActivity(intentLocSource);
 		    }
 	}
 
