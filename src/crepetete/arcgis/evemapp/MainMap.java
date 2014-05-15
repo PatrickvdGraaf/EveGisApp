@@ -38,16 +38,16 @@ import com.esri.core.symbol.SimpleMarkerSymbol;
 import crepetete.arcgis.evemapp.R;
 
 public class MainMap extends Activity implements LocationListener {
-		
+
 	final Context context = this;
-	
+
 	private MapView mMapView;
 	private User user;
 	private GraphicsLayer gl;
 	private LocationManager locationManager;
 	private String provider;
 	private Point testPersoon;
-	
+
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
@@ -63,7 +63,7 @@ public class MainMap extends Activity implements LocationListener {
 		//Voeg de onclicklistener toe
 		createMapViewTapList();
 		mMapView.addLayer(gl);
-			
+
 			LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
 			boolean enabled = service.isProviderEnabled(LocationManager.GPS_PROVIDER);
 
@@ -74,7 +74,7 @@ public class MainMap extends Activity implements LocationListener {
 			  Intent intentLocSource = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
 			  startActivity(intentLocSource);
 			} 
-			
+
 			// Get the location manager
 		    locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -82,7 +82,7 @@ public class MainMap extends Activity implements LocationListener {
 		    Criteria criteria = new Criteria();
 		    provider = locationManager.getBestProvider(criteria, false);
 		    Location location = locationManager.getLastKnownLocation(provider);
-		    
+
 		 // Initialize the location fields
 		    createPoint(location);	 
 	}
@@ -98,14 +98,14 @@ public class MainMap extends Activity implements LocationListener {
 		locationManager.requestLocationUpdates(provider, 50000, 20, this);
 		mMapView.unpause();
 	}
-	
+
 	//Get coördinates. (Hier wordt atm gebruik gemaakt van ESRI's LocationDisplayManager om een punt aan te geven waar jij bent, maar (android) Location wordt gebruikt
 	//voor long en lat (dubbel GPS gebruik??)
 	public void onLocationChanged(Location location) {
 		LocationDisplayManager ls = mMapView.getLocationDisplayManager();
 			if (ls.isStarted() == false && isOnline()) {	
 				ls.start();
-				
+
 			}else if(!isOnline()){
 				System.out.println("Geen verbinding, skip met gegevens versturen.");
 			}else {	
@@ -125,7 +125,7 @@ public class MainMap extends Activity implements LocationListener {
 	public void onProviderDisabled(String provider) {
 		Toast.makeText(this, "Disabled provider " + provider,
 		        Toast.LENGTH_SHORT).show();
-		
+
 	}
 
 	public void onProviderEnabled(String provider) {
@@ -141,7 +141,7 @@ public class MainMap extends Activity implements LocationListener {
 			System.out.println("Geen internerverbinding");
 		}
 	}
-	
+
 	//Check of er internet is
 	public boolean isOnline() {
 	    ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -151,28 +151,28 @@ public class MainMap extends Activity implements LocationListener {
 	    }
 	    return false;
 	}
-	
+
 	private void createPoint(Location location) {
 		if (location != null && isOnline()) {
 		      System.out.println("Provider " + provider + " has been selected.");
 		      onLocationChanged(location);
-		      
+
 		    //testpersoon info (hier gebruik ik de lat/long van Papendrecht, 51.8294792/4.6964865
 		      testPersoon = ToWebMercator(4.6964865, 51.8294792);
-		        
+
 		   // create a point marker symbol (red, size 10, of type circle)
 		      SimpleMarkerSymbol simpleMarker = new SimpleMarkerSymbol(Color.RED, 10, SimpleMarkerSymbol.STYLE.CIRCLE);
-		      
+
 		   // voeg attributen toe
 		      Map<String,Object> attr = new HashMap<String, Object>();
 		      attr.put("name", "Patrick van de Graaf");
-		      
+
 		   // create a graphic with the geometry and marker symbol
 		      Graphic testGraphic = new Graphic(testPersoon, simpleMarker, attr);      
-		          
+
 		   // add the graphic to the graphics layer
 		      gl.addGraphic(testGraphic);   
-	   
+
 		    } else if (!isOnline()){
 		    	System.out.println("Er is geen internetverbinding.");
 		    }else if(location == null){
@@ -185,7 +185,7 @@ public class MainMap extends Activity implements LocationListener {
 	private void createMapViewTapList() {
 		mMapView.setOnSingleTapListener(new OnSingleTapListener(){
 			private static final long serialVersionUID = 1L;
-			
+
 			//Onclick voor een Point
 			public void onSingleTap(float x, float y) {
 				  int[] ids = gl.getGraphicIDs(x,  y,  10, 1); // experiment with tolerance and num of results params here
@@ -198,12 +198,12 @@ public class MainMap extends Activity implements LocationListener {
 		      			final Dialog dialog = new Dialog(context);
 		      			dialog.setContentView(R.layout.infodialog);
 		      			dialog.setTitle("Informatie");
-		       
+
 		      			TextView text = (TextView) dialog.findViewById(R.id.text);
 		      			text.setText("Name = " + foundGraphic.getAttributeValue("name"));
 		      			ImageView image = (ImageView) dialog.findViewById(R.id.image);
 		      			image.setImageResource(R.drawable.ic_launcher);
-		       
+
 		      			Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
 		      			// if button is clicked, close the custom dialog
 		      			dialogButton.setOnClickListener(new OnClickListener() {
@@ -211,14 +211,14 @@ public class MainMap extends Activity implements LocationListener {
 		      					dialog.dismiss();
 		      				}
 		      			});
-		       
+
 		      			dialog.show();
 		              }
 		            }
 			}			
 		});	
 	}
-	
+
 	//Verander normale coördinaten naar Mercator voor esri(longitude, latitude)
 		private Point ToWebMercator(double mercatorX_lon, double mercatorY_lat)
 		{

@@ -5,7 +5,8 @@
     android:versionName="1.0" >
 
     <uses-sdk 
-        android:minSdkVersion="10"/>
+        android:minSdkVersion="8"
+        android:targetSdkVersion="19"/>
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -23,7 +24,7 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name" >
         <activity
-            android:name="crepetete.arcgis.evemapp.LogInActivity"
+            android:name="crepetete.arcgis.evemapp.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -33,6 +34,10 @@
         </activity>
         <activity
             android:name="crepetete.arcgis.evemapp.MainMap"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="crepetete.arcgis.evemapp.LogInActivity"
             android:label="@string/app_name" >
         </activity>
         <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/app_id"/>

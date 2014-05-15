@@ -7,6 +7,7 @@ import com.facebook.*;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.widget.TextView;
 
 
 public class FbLoginMainActivity extends FragmentActivity{
@@ -26,6 +27,10 @@ public class FbLoginMainActivity extends FragmentActivity{
 
 	    		  // callback after Graph API response with user object
 	    		  public void onCompleted(GraphUser user, Response response) {
+	    			  if (user != null) {
+	    				  TextView welcome = (TextView) findViewById(R.id.welcome);
+	    				  welcome.setText("Hello " + user.getName() + "!");
+	    				}
 	    		  }
 	    		}).executeAsync();
 	    	}
