@@ -1,11 +1,8 @@
 package crepetete.arcgis.evemapp;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.http.client.ClientProtocolException;
 
 import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.LocationDisplayManager;
@@ -85,7 +82,7 @@ public class SelectionFragment extends Fragment implements LocationListener{
 	 // Initialize the location fields 
 	    
 	    Session session = new Session(getActivity());
-	    session.openForRead(new Session.OpenRequest(this).setCallback(callback).setPermissions(Arrays.asList("friends_birthday", "friends_work_history")));
+	    session.openForRead(new Session.OpenRequest(this).setCallback(callback).setPermissions(Arrays.asList("friends_birthday")));
 	}
 
 	@Override
@@ -108,8 +105,8 @@ public class SelectionFragment extends Fragment implements LocationListener{
 	
 	//respond to session changes / call makeMeRequest() if session is open
 	private void onSessionStateChange(final Session session, SessionState state, Exception exception) {
-		if (session != null && session.isOpened()) {
-		}
+		
+		 onLocationChanged(locationManager.getLastKnownLocation(provider));
 	}
 	
 	@Override
