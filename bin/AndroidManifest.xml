@@ -33,10 +33,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="crepetete.arcgis.evemapp.MainMap"
-            android:label="@string/app_name" >
-        </activity>
-        <activity
             android:name="crepetete.arcgis.evemapp.LogInActivity"
             android:label="@string/app_name" >
         </activity>

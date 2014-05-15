@@ -1,23 +1,10 @@
 package crepetete.arcgis.evemapp;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
-
-import org.apache.http.client.ClientProtocolException;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -29,13 +16,11 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.provider.Settings;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -73,8 +58,6 @@ public class SelectionFragment extends Fragment implements LocationListener{
 	private Point testPersoon;
 	
 	private static HttpURLConnection httpConn;
-	// assumes the current class is called logger
-	private final static Logger l = Logger.getLogger(SelectionFragment.class.getName()); 
 	
 	private UiLifecycleHelper uiHelper;
 	private Session.StatusCallback callback = new Session.StatusCallback() {
@@ -105,7 +88,7 @@ public class SelectionFragment extends Fragment implements LocationListener{
 		} 
 		// Get the location manager
 	    locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
-	    Log.i("onCreate", "onCreate");
+	    System.out.println("create");
 	    session = new Session(getActivity());
 	    session.openForRead(new Session.OpenRequest(this).setCallback(callback).setPermissions(Arrays.asList("friends_birthday")));
 	}
@@ -126,14 +109,16 @@ public class SelectionFragment extends Fragment implements LocationListener{
 		//Voeg de onclicklistener toe
 		createMapViewTapList();
 		mMapView.addLayer(gl);
-		
-		makeMeRequest(session);
+		System.out.println("view");
 	    return view;
 	}
 	
 	//respond to session changes / call makeMeRequest() if session is open
 	private void onSessionStateChange(final Session session, SessionState state, Exception exception) {	
 		 onLocationChanged(locationManager.getLastKnownLocation(provider));
+		 if (session != null && session.isOpened()) {
+		        makeMeRequest(session);
+		    }
 	}
 	
 	@Override
@@ -167,7 +152,6 @@ public class SelectionFragment extends Fragment implements LocationListener{
 		LocationDisplayManager ls = mMapView.getLocationDisplayManager();
 		if (ls.isStarted() == false && isOnline()) {	
 			ls.start();
-			Log.i("start ls", "start ls");
 		}else if(!isOnline()){
 			System.out.println("Geen verbinding, skip met gegevens versturen.");
 		}else {	
@@ -241,6 +225,29 @@ public class SelectionFragment extends Fragment implements LocationListener{
 				startActivity(intentLocSource);
 		    }
 	}
+	
+	//request user data
+	private void makeMeRequest(final Session session) {
+	    Request request = Request.newMeRequest(session, 
+	            new Request.GraphUserCallback() {
+
+			public void onCompleted(GraphUser fbUser, Response response) {
+	            // Als de request gelukt is, plaats ik de info in de daarvoor gemaakte View's. (Dit komt uit de Facebook SDK tutorials van developers.facebook)
+	            if (session == Session.getActiveSession()) {
+	                if (fbUser != null) {
+	                    user.setMyId(fbUser.getId());
+	                    user.setMyName((fbUser.getName()));
+	                    System.out.println(user.getMyName());
+	                }
+	            }
+	            if (response.getError() != null) {
+	            	System.out.println(response.getError().getErrorMessage());
+	            }
+	        }
+	    });
+	    request.executeAsync();
+	} 
+	
 
 	private void createMapViewTapList() {
 		mMapView.setOnSingleTapListener(new OnSingleTapListener(){
@@ -278,142 +285,24 @@ public class SelectionFragment extends Fragment implements LocationListener{
 			}			
 		});	
 	}
-	
-	private class AsyncTaskRunner extends AsyncTask<String, String, String> {
-
-		  @Override
-		  protected String doInBackground(String... params) {
-			  String postResult;
-			   try {
-					LogIn();
-					postResult = response[0];
-				} catch (ClientProtocolException e) {
-					e.printStackTrace();
-					postResult = e.getMessage();
-				} catch (IOException e) {
-					e.printStackTrace();
-					postResult = e.getMessage();
-				}
-			   return postResult;
-		  }
-	}
-
-	public HttpURLConnection LogIn() throws ClientProtocolException, IOException{
-		URL url = new URL(getString(R.string.backend_site));
-      httpConn = (HttpURLConnection) url.openConnection();
-      httpConn.setUseCaches(false);
-
-      httpConn.setDoInput(true); // true indicates the server returns response
-
-      StringBuffer requestParams = new StringBuffer();
-      Map<String, String> postParams = makeParams();
-      if (postParams != null && postParams.size() > 0) {
-      	
-          httpConn.setDoOutput(true); // true indicates POST request
-          System.out.println(postParams);
-          // creates the params string, encode them using URLEncoder
-          Iterator<String> paramIterator = (postParams).keySet().iterator();
-          while (paramIterator.hasNext()) {
-              String key = paramIterator.next();
-              String value = postParams.get(key);
-              requestParams.append(URLEncoder.encode(key, "UTF-8"));
-              requestParams.append("=").append(
-                      URLEncoder.encode(value, "UTF-8"));
-              requestParams.append("&");
-          }
-          Log.i("requestParams", requestParams.toString());
-          // sends POST data
-          OutputStreamWriter writer = new OutputStreamWriter(
-                  httpConn.getOutputStream());
-          writer.write(requestParams.toString());
-          writer.flush();
-      }
-      response = readMultipleLinesRespone();
-
-      return httpConn;
-  }
-
-	public Map<String, String> makeParams() throws UnsupportedEncodingException{
-		// Request parameters and other properties.
-				Map<String, String> params = new HashMap<String, String>();
-				params.put("id", user.getMyId());
-				params.put("type", "register");
-				params.put("friends", "");
-				params.put("privacysetting", "full");
-				  Log.i("requestParams", params.toString());
-				return params;
-	}
-	
-	public static String[] readMultipleLinesRespone() throws IOException {
-        InputStream inputStream = null;
-        if (httpConn != null) {
-            inputStream = httpConn.getInputStream();
-        } else {
-            throw new IOException("Connection is not established.");
-        }
- 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(
-                inputStream));
-        List<String> response = new ArrayList<String>();
- 
-        String line = "";
-        while ((line = reader.readLine()) != null) {
-            response.add(line);
-        }
-        reader.close();
- 
-        return (String[]) response.toArray(new String[0]);
-    }
- 
-        
+    
 
 	//Verander normale coördinaten naar Mercator voor esri(longitude, latitude)
-		private Point ToWebMercator(double mercatorX_lon, double mercatorY_lat)
-		{
-		    if ((Math.abs(mercatorX_lon) > 180 || Math.abs(mercatorY_lat) > 90)){
-		        return null;
-		    }
-		    double num = mercatorX_lon * 0.017453292519943295;
-		    double x = 6378137.0 * num;
-		    double a = mercatorY_lat * 0.017453292519943295;
+	private Point ToWebMercator(double mercatorX_lon, double mercatorY_lat)
+	{
+		   if ((Math.abs(mercatorX_lon) > 180 || Math.abs(mercatorY_lat) > 90)){
+		       return null;
+		   }
+		   double num = mercatorX_lon * 0.017453292519943295;
+		   double x = 6378137.0 * num;
+		   double a = mercatorY_lat * 0.017453292519943295;
 
-		    mercatorX_lon = x;
-		    mercatorY_lat = 3189068.5 * Math.log((1.0 + Math.sin(a)) / (1.0 - Math.sin(a)));
-		    Point p = new Point(mercatorX_lon, mercatorY_lat);
-		    return p;
-		}
+		   mercatorX_lon = x;
+		   mercatorY_lat = 3189068.5 * Math.log((1.0 + Math.sin(a)) / (1.0 - Math.sin(a)));
+		   Point p = new Point(mercatorX_lon, mercatorY_lat);
+		   return p;
+	}
 		
-		//request user data
-		private void makeMeRequest(final Session session) {
-		    Request request = Request.newMeRequest(session, 
-		            new Request.GraphUserCallback() {
-
-				public void onCompleted(GraphUser fbUser, Response response) {
-		            // Als de request gelukt is, plaats ik de info in de daarvoor gemaakte View's. (Dit komt uit de Facebook SDK tutorials van developers.facebook)
-		            if (session == Session.getActiveSession()) {
-		                if (fbUser != null) {
-		                    user.setMyId(fbUser.getId());
-		                    user.setMyName(user.getMyName());
-		           		 	//Send id
-		           		 	try {
-								LogIn();
-							} catch (ClientProtocolException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-		                }
-		            }
-		            if (response.getError() != null) {
-		            	System.out.println(response.getError().getErrorMessage());
-		            }
-		        }
-		    });
-		    request.executeAsync();
-		} 
-
 	//Voor als we ooit de X/Y van Points (die tot nu toe NullPointers gaven) naar normale Coordinaten moeten omrekenen
 //	private Point ToGeographic(double mercatorX_lon, double mercatorY_lat)
 //	{
