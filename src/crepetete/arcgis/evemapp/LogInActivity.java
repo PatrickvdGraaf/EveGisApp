@@ -93,7 +93,7 @@ public class LogInActivity extends Activity {
 		 @Override
 		 protected void onPostExecute(String result) {
 				if(result.equals("true")){
-					Intent myIntent = new Intent(LogInActivity.this, MainMap.class);
+					Intent myIntent = new Intent(LogInActivity.this, SelectionFragment.class);
 					myIntent.putExtra("id", id); 
 					LogInActivity.this.startActivity(myIntent);
 				}else if(result.equals("false")){
