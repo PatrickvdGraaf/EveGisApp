@@ -1,10 +1,22 @@
 package crepetete.arcgis.evemapp;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+
+import org.apache.http.client.ClientProtocolException;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -16,6 +28,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.provider.Settings;
@@ -60,11 +73,17 @@ public class SelectionFragment extends Fragment implements LocationListener{
 	private static HttpURLConnection httpConn;
 	
 	private UiLifecycleHelper uiHelper;
-	private Session.StatusCallback callback = new Session.StatusCallback() {
-	    public void call(final Session session, final SessionState state, final Exception exception) {
-	        onSessionStateChange(session, state, exception);
+	private Session.StatusCallback callback= new Session.StatusCallback() {
+		public void call(final Session session, final SessionState state, final Exception exception) {
+	        try {
+				onSessionStateChange(session, state, exception);
+			} catch (ClientProtocolException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 	    }
-	};
+	};;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -88,7 +107,6 @@ public class SelectionFragment extends Fragment implements LocationListener{
 		} 
 		// Get the location manager
 	    locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
-	    System.out.println("create");
 	    session = new Session(getActivity());
 	    session.openForRead(new Session.OpenRequest(this).setCallback(callback).setPermissions(Arrays.asList("friends_birthday")));
 	}
@@ -109,16 +127,20 @@ public class SelectionFragment extends Fragment implements LocationListener{
 		//Voeg de onclicklistener toe
 		createMapViewTapList();
 		mMapView.addLayer(gl);
-		System.out.println("view");
 	    return view;
 	}
 	
 	//respond to session changes / call makeMeRequest() if session is open
-	private void onSessionStateChange(final Session session, SessionState state, Exception exception) {	
-		 onLocationChanged(locationManager.getLastKnownLocation(provider));
-		 if (session != null && session.isOpened()) {
-		        makeMeRequest(session);
-		    }
+	private void onSessionStateChange(final Session session, SessionState state, Exception exception) throws ClientProtocolException, IOException {	
+//		 onLocationChanged(locationManager.getLastKnownLocation(provider));
+		if (session != null && session.isOpened()) {
+			System.out.println("session");
+			makeMeRequest(session);
+		}else if(!session.isOpened()){
+			System.out.println("no session");
+		}else{
+			System.out.println("session = null");
+		}
 	}
 	
 	@Override
@@ -160,12 +182,15 @@ public class SelectionFragment extends Fragment implements LocationListener{
 		if(isOnline()){
 			user.setMyLat(location.getLatitude());
 			user.setMyLng(location.getLongitude());
-			try {
-				System.out.println("Send.");
-				user.makeLoc_SelfParams();
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
+//			try {
+//				user.makeLoc_SelfParams(getString(R.string.backend_site));
+//			} catch (UnsupportedEncodingException e) {
+//				e.printStackTrace();
+//			} catch (ClientProtocolException e) {
+//				e.printStackTrace();
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
 		}
 	}
 
@@ -228,18 +253,17 @@ public class SelectionFragment extends Fragment implements LocationListener{
 	
 	//request user data
 	private void makeMeRequest(final Session session) {
-	    Request request = Request.newMeRequest(session, 
-	            new Request.GraphUserCallback() {
-
-			public void onCompleted(GraphUser fbUser, Response response) {
+	    Request request = Request.newMeRequest(session, new Request.GraphUserCallback() {
+	    	public void onCompleted(GraphUser fbUser, Response response) {
 	            // Als de request gelukt is, plaats ik de info in de daarvoor gemaakte View's. (Dit komt uit de Facebook SDK tutorials van developers.facebook)
-	            if (session == Session.getActiveSession()) {
-	                if (fbUser != null) {
+	    		System.out.println("session2");
+	    		if (session == Session.getActiveSession()) {
+	            	System.out.println("me");
 	                    user.setMyId(fbUser.getId());
 	                    user.setMyName((fbUser.getName()));
-	                    System.out.println(user.getMyName());
-	                }
-	            }
+	                    AsyncTaskRunner runner = new AsyncTaskRunner();
+	                    runner.execute();
+	    		}
 	            if (response.getError() != null) {
 	            	System.out.println(response.getError().getErrorMessage());
 	            }
@@ -303,6 +327,91 @@ public class SelectionFragment extends Fragment implements LocationListener{
 		   return p;
 	}
 		
+	
+	private class AsyncTaskRunner extends AsyncTask<String, String, String> {
+
+		  @Override
+		  protected String doInBackground(String... params) {
+			  String postResult;
+			   try {
+					LogIn();
+					postResult = response[0];
+				} catch (ClientProtocolException e) {
+					e.printStackTrace();
+					postResult = e.getMessage();
+				} catch (IOException e) {
+					e.printStackTrace();
+					postResult = e.getMessage();
+				}
+			   return postResult;
+		  }
+	}
+			
+	public HttpURLConnection LogIn() throws ClientProtocolException, IOException{
+		URL url = new URL(getString(R.string.backend_site));
+      httpConn = (HttpURLConnection) url.openConnection();
+      httpConn.setUseCaches(false);
+
+      httpConn.setDoInput(true); // true indicates the server returns response
+
+      StringBuffer requestParams = new StringBuffer();
+      Map<String, String> postParams = makeParams();
+      if (postParams != null && postParams.size() > 0) {
+      	
+          httpConn.setDoOutput(true); // true indicates POST request
+          System.out.println("postparams " + postParams);
+          // creates the params string, encode them using URLEncoder
+          Iterator<String> paramIterator = (postParams).keySet().iterator();
+          while (paramIterator.hasNext()) {
+              String key = paramIterator.next();
+              String value = postParams.get(key);
+              requestParams.append(URLEncoder.encode(key, "UTF-8"));
+              requestParams.append("=").append(
+                      URLEncoder.encode(value, "UTF-8"));
+              requestParams.append("&");
+          }
+          System.out.println(requestParams.toString());
+          // sends POST data
+          OutputStreamWriter writer = new OutputStreamWriter(
+                  httpConn.getOutputStream());
+          writer.write(requestParams.toString());
+          writer.flush();
+      }
+      response = readMultipleLinesRespone();
+      System.out.println(response);      
+      return httpConn;
+  }
+	
+	public Map<String, String> makeParams() throws UnsupportedEncodingException{
+		// Request parameters and other properties.
+				Map<String, String> params = new HashMap<String, String>();
+				params.put("id", user.getMyId());
+				params.put("type", "register");
+				params.put("friends", "");
+				params.put("privacysetting", "full");
+				return params;
+	}
+	
+	public static String[] readMultipleLinesRespone() throws IOException {
+        InputStream inputStream = null;
+        if (httpConn != null) {
+            inputStream = httpConn.getInputStream();
+        } else {
+            throw new IOException("Connection is not established.");
+        }
+ 
+        BufferedReader reader = new BufferedReader(new InputStreamReader(
+                inputStream));
+        List<String> response = new ArrayList<String>();
+ 
+        String line = "";
+        while ((line = reader.readLine()) != null) {
+            response.add(line);
+        }
+        reader.close();
+ 
+        return (String[]) response.toArray(new String[0]);
+    }
 	//Voor als we ooit de X/Y van Points (die tot nu toe NullPointers gaven) naar normale Coordinaten moeten omrekenen
 //	private Point ToGeographic(double mercatorX_lon, double mercatorY_lat)
 //	{

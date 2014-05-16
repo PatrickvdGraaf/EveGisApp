@@ -1,10 +1,20 @@
 package crepetete.arcgis.evemapp;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -21,7 +31,9 @@ public class User {
 	private double myLat;
 	private double myLng;
 	private String webUrl;
-	private List<NameValuePair> myParams = new ArrayList<NameValuePair>();
+	private Map<String, String> myParams = new HashMap<String, String>();
+	private static HttpURLConnection httpConn;
+	private String[] response;
 	
 	public String getMyId() {
 		return myId;
@@ -41,20 +53,18 @@ public class User {
 		return myLat;
 	}
 	public void setMyLat(double myLat) {
-		System.out.println(myLat);
 		this.myLat = myLat;
 	}
 	public double getMyLng() {
 		return myLng;
 	}
 	public void setMyLng(double myLng) {
-		System.out.println(myLng);
 		this.myLng = myLng;
 	}
-	public List<NameValuePair> getMyParams() {
+	public Map<String, String> getMyParams() {
 		return myParams;
 	}
-	public void setMyParams(List<NameValuePair> params) {
+	public void setMyParams(Map<String, String> params) {
 		this.myParams = params;
 	}
 	
@@ -62,39 +72,72 @@ public class User {
 		webUrl = string;
 	}
 		
-	public void makeLoc_SelfParams() throws UnsupportedEncodingException{
-		// Request parameters and other properties.
-		System.out.println("Gonn' make sum Loc_Self Params");
+	public void makeLoc_SelfParams(String url) throws ClientProtocolException, IOException{
 		myParams.clear();
-		myParams.add(new BasicNameValuePair("id", getMyId()));
-		myParams.add(new BasicNameValuePair("type", "loc_self"));
-		myParams.add(new BasicNameValuePair("lat", Double.toString(getMyLat())));
-		myParams.add(new BasicNameValuePair("long", Double.toString(getMyLng())));
-		setMyParams(myParams);
+		myParams.put("id", getMyId());
+		myParams.put("type",  "loc_self");
+		myParams.put("lat", Double.toString(getMyLat()));
+		myParams.put("long", Double.toString(getMyLng()));
+		
+		LogIn(url, myParams);
 		return;
 	}
 		
-	//POST info naar Mitchell's server 
-			public void POST() throws ClientProtocolException, IOException{
-				HttpClient httpclient = new DefaultHttpClient();
-				HttpPost httppost = new HttpPost(webUrl); //Mitchells URL
-				List<NameValuePair> params = getMyParams();
-				// Request parameters and other properties.
-				httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+	public HttpURLConnection LogIn(String u, Map<String, String> params) throws ClientProtocolException, IOException{
+			URL url = new URL(u);
+		      httpConn = (HttpURLConnection) url.openConnection();
+		      httpConn.setUseCaches(false);
 
-				//Execute and get the response.
-				HttpResponse response = httpclient.execute(httppost);
-				System.out.println("posted");
-				HttpEntity entity = response.getEntity();
-				if (entity != null) {
-				    InputStream instream = entity.getContent();
-				    try {
-				        System.out.println(instream.toString());
-				    } finally {
-				        instream.close();
-				    }
-				}
-			}
-	
+		      httpConn.setDoInput(true); // true indicates the server returns response
+
+		      StringBuffer requestParams = new StringBuffer();
+		      Map<String, String> postParams = params;
+		      if (postParams != null && postParams.size() > 0) {
+		      	
+		          httpConn.setDoOutput(true); // true indicates POST request
+		          System.out.println("postparams " + postParams);
+		          // creates the params string, encode them using URLEncoder
+		          Iterator<String> paramIterator = (postParams).keySet().iterator();
+		          while (paramIterator.hasNext()) {
+		              String key = paramIterator.next();
+		              String value = postParams.get(key);
+		              requestParams.append(URLEncoder.encode(key, "UTF-8"));
+		              requestParams.append("=").append(
+		                      URLEncoder.encode(value, "UTF-8"));
+		              requestParams.append("&");
+		          }
+		          System.out.println(requestParams.toString());
+		          // sends POST data
+		          OutputStreamWriter writer = new OutputStreamWriter(
+		                  httpConn.getOutputStream());
+		          writer.write(requestParams.toString());
+		          writer.flush();
+		      }
+		      response = readMultipleLinesRespone();
+		      System.out.println(response);
+		      
+		      return httpConn;
+		  }
+			
+			public static String[] readMultipleLinesRespone() throws IOException {
+		        InputStream inputStream = null;
+		        if (httpConn != null) {
+		            inputStream = httpConn.getInputStream();
+		        } else {
+		            throw new IOException("Connection is not established.");
+		        }
+		 
+		        BufferedReader reader = new BufferedReader(new InputStreamReader(
+		                inputStream));
+		        List<String> response = new ArrayList<String>();
+		 
+		        String line = "";
+		        while ((line = reader.readLine()) != null) {
+		            response.add(line);
+		        }
+		        reader.close();
+		 
+		        return (String[]) response.toArray(new String[0]);
+		    }
 
 }
