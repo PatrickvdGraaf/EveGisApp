@@ -22,7 +22,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -59,12 +58,11 @@ import com.facebook.UiLifecycleHelper;
 import com.facebook.model.GraphUser;
 
 @SuppressLint("UseValueOf")
-public class SelectionFragment extends Fragment implements LocationListener {
+public class SelectionFragment extends Fragment{
 
 	private MapView mMapView;
 	private User user;
 	private GraphicsLayer gl;
-	private LocationManager locationManager;
 	private String provider;
 	private String[] response;
 	private Session session;
@@ -100,28 +98,17 @@ public class SelectionFragment extends Fragment implements LocationListener {
 		uiHelper = new UiLifecycleHelper(getActivity(), callback);
 		uiHelper.onCreate(savedInstanceState);
 
+		LocationManager locationManager = (LocationManager) getActivity().getApplicationContext()
+	            .getSystemService(Context.LOCATION_SERVICE);
+
+	    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+	            5000, 5, listener);
+	    
 		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
 				.permitAll().build();
 		StrictMode.setThreadPolicy(policy);
 
-		user = new User();
-
-		LocationManager service = (LocationManager) getActivity()
-				.getSystemService(Context.LOCATION_SERVICE);
-		boolean enabled = service
-				.isProviderEnabled(LocationManager.GPS_PROVIDER);
-		// check if enabled and if not send user to the GSP settings
-		// Better solution would be to display a dialog and suggesting to
-		// go to the settings
-		if (!enabled) {
-			Intent intentLocSource = new Intent(
-					Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-			startActivity(intentLocSource);
-		}
-		// Get the location manager
-		locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
-		ls = mMapView.getLocationDisplayManager();
-		
+		user = new User();		
 		session = new Session(getActivity());
 		session.openForRead(new Session.OpenRequest(this).setCallback(callback)
 				.setPermissions(Arrays.asList("friends_birthday")));
@@ -136,12 +123,16 @@ public class SelectionFragment extends Fragment implements LocationListener {
 		mMapView = (MapView) view.findViewById(R.id.map);
 		mMapView.addLayer(new ArcGISTiledMapServiceLayer("" + "http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"));
 		gl = new GraphicsLayer();
-		// Define the criteria how to select the locatioin provider -> use
-		// default
-		Criteria criteria = new Criteria();
-		provider = locationManager.getBestProvider(criteria, false);
-		Location location = locationManager.getLastKnownLocation(provider);
-		createPoint(location);
+		
+		if(user.getMyId()!= null){
+		    try {
+				makeLoc_SelfParams();
+			} catch (ClientProtocolException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+	    }
 		// Voeg de onclicklistener toe
 		createMapViewTapList();
 		mMapView.addLayer(gl);
@@ -166,7 +157,6 @@ public class SelectionFragment extends Fragment implements LocationListener {
 	public void onResume() {
 		super.onResume();
 		uiHelper.onResume();
-		locationManager.requestLocationUpdates(provider, 50000, 20, this);
 		mMapView.unpause();
 	}
 
@@ -189,71 +179,6 @@ public class SelectionFragment extends Fragment implements LocationListener {
 		uiHelper.onDestroy();
 	}
 
-	@SuppressLint("UseValueOf")
-	public void onLocationChanged(Location location) {
-		if (isOnline()) {
-			if (ls.isStarted() == false){
-				ls.start();
-			}
-		    double lat = location.getLatitude();
-		    double lng = location.getLongitude();
-		    user.setMyLat(lat);
-		    user.setMyLng(lng);
-		    if(user.getMyId()!= null){
-			    try {
-					makeLoc_SelfParams();
-				} catch (ClientProtocolException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-		    }
-		} else if (!isOnline()) {
-			System.out.println("Geen verbinding, skip met gegevens versturen.");
-		} else {
-			ls.stop();
-		}
-		;
-		if (isOnline()) {
-			if (session != null && session.isOpened()) {
-				double lat = location.getLatitude();
-				double lng = location.getLongitude();
-				user.setMyLat(lat);
-				user.setMyLng(lng);
-				Double dLat = new Double(lat);
-				Double dLng = new Double(lng);
-				if(dLat != null && dLng != null){
-					try {
-						makeLoc_SelfParams();
-					} catch (ClientProtocolException e) {
-						e.printStackTrace();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}
-	}
-
-	public void onProviderDisabled(String arg0) {
-		Toast.makeText(getActivity(), "Disabled provider " + provider,
-				Toast.LENGTH_SHORT).show();
-	}
-
-	public void onProviderEnabled(String arg0) {
-		Toast.makeText(getActivity(), "Enabled new provider " + provider,
-				Toast.LENGTH_SHORT).show();
-	}
-
-	public void onStatusChanged(String provider, int status, Bundle extras) {
-		if (isOnline()) {
-			System.out.println("Verbinding is terug");
-			onLocationChanged(locationManager.getLastKnownLocation(provider));
-		} else {
-			System.out.println("Geen internerverbinding");
-		}
-	}
-
 	// Check of er internet is
 	public boolean isOnline() {
 		getActivity();
@@ -268,7 +193,6 @@ public class SelectionFragment extends Fragment implements LocationListener {
 
 	private void createPoint(Location location) {
 		if (location != null && isOnline()) {
-			onLocationChanged(location);
 
 			// testpersoon info (hier gebruik ik de lat/long van Papendrecht,
 			// 51.8294792/4.6964865
@@ -452,11 +376,9 @@ public class SelectionFragment extends Fragment implements LocationListener {
 		postParams.put("type", "register");
 		postParams.put("friends", "");
 		postParams.put("privacysetting", "full");
-		if (runner == null){
-			runner = new AsyncTaskRunner();
-		}
+		post();
+		runner = new AsyncTaskRunner();
 		runner.execute();
-		return;
 	}
 	
 	public void makeLoc_SelfParams() throws ClientProtocolException, IOException{
@@ -465,9 +387,7 @@ public class SelectionFragment extends Fragment implements LocationListener {
 		postParams.put("type",  "loc_self");
 		postParams.put("lat", Double.toString(user.getMyLat()));
 		postParams.put("long", Double.toString(user.getMyLng()));
-		if (runner == null){
-			runner = new AsyncTaskRunner();
-		}
+		runner = new AsyncTaskRunner();
 		runner.execute();
 		return;
 	}
@@ -495,6 +415,44 @@ public class SelectionFragment extends Fragment implements LocationListener {
 		return (String[]) response.toArray(new String[0]);
 	}
 	
+	private LocationListener listener = new LocationListener() {
+
+		public void onLocationChanged(Location location) {
+		    double lat = location.getLatitude();
+		    double lng = location.getLongitude();
+		    createPoint(location);
+		    user.setMyLat(lat);
+		    user.setMyLng(lng);
+		    if(user.getMyId()!= null){
+			    try {
+					makeLoc_SelfParams();
+				} catch (ClientProtocolException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+		    }
+		}
+
+	    public void onProviderDisabled(String arg0) {
+			Toast.makeText(getActivity(), "Disabled provider " + provider,
+					Toast.LENGTH_SHORT).show();
+		}
+
+	    public void onProviderEnabled(String arg0) {
+			Toast.makeText(getActivity(), "Enabled new provider " + provider,
+					Toast.LENGTH_SHORT).show();
+		}
+
+	    public void onStatusChanged(String provider, int status, Bundle extras) {
+			if (isOnline()) {
+				System.out.println("Verbinding is terug");
+			} else {
+				System.out.println("Geen internerverbinding");
+			}
+		}
+	};
+};
 	
 	// Voor als we ooit de X/Y van Points (die tot nu toe NullPointers gaven)
 	// naar normale Coordinaten moeten omrekenen
@@ -521,4 +479,3 @@ public class SelectionFragment extends Fragment implements LocationListener {
 	// Point p = new Point(mercatorX_lon, mercatorY_lat);
 	// return p;
 	// }
-}
