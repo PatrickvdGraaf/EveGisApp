@@ -15,14 +15,12 @@ public class User {
 		return myId;
 	}
 	public void setMyId(String string) {
-		System.out.println(string);
 		this.myId = string;
 	}
 	public String getMyName() {
 		return name;
 	}
 	public void setMyName(String name) {
-		System.out.println(name);
 		this.name = name;
 	}
 	public double getMyLat() {

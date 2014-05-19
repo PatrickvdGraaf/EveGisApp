@@ -68,6 +68,11 @@ public class SelectionFragment extends Fragment implements LocationListener {
 	private String provider;
 	private String[] response;
 	private Session session;
+	private AsyncTaskRunner runner;
+	private LocationDisplayManager ls;
+	
+    boolean gps_enabled=false;
+    boolean network_enabled=false;
 
 	private Point testPersoon;
 	
@@ -114,8 +119,9 @@ public class SelectionFragment extends Fragment implements LocationListener {
 			startActivity(intentLocSource);
 		}
 		// Get the location manager
-		locationManager = (LocationManager) getActivity().getSystemService(
-				Context.LOCATION_SERVICE);
+		locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+		ls = mMapView.getLocationDisplayManager();
+		
 		session = new Session(getActivity());
 		session.openForRead(new Session.OpenRequest(this).setCallback(callback)
 				.setPermissions(Arrays.asList("friends_birthday")));
@@ -128,9 +134,7 @@ public class SelectionFragment extends Fragment implements LocationListener {
 
 		View view = inflater.inflate(R.layout.mainmap, container, false);
 		mMapView = (MapView) view.findViewById(R.id.map);
-		mMapView.addLayer(new ArcGISTiledMapServiceLayer(
-				""
-						+ "http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"));
+		mMapView.addLayer(new ArcGISTiledMapServiceLayer("" + "http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"));
 		gl = new GraphicsLayer();
 		// Define the criteria how to select the locatioin provider -> use
 		// default
@@ -187,9 +191,23 @@ public class SelectionFragment extends Fragment implements LocationListener {
 
 	@SuppressLint("UseValueOf")
 	public void onLocationChanged(Location location) {
-		LocationDisplayManager ls = mMapView.getLocationDisplayManager();
-		if (ls.isStarted() == false && isOnline()) {
-			ls.start();
+		if (isOnline()) {
+			if (ls.isStarted() == false){
+				ls.start();
+			}
+		    double lat = location.getLatitude();
+		    double lng = location.getLongitude();
+		    user.setMyLat(lat);
+		    user.setMyLng(lng);
+		    if(user.getMyId()!= null){
+			    try {
+					makeLoc_SelfParams();
+				} catch (ClientProtocolException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+		    }
 		} else if (!isOnline()) {
 			System.out.println("Geen verbinding, skip met gegevens versturen.");
 		} else {
@@ -205,9 +223,13 @@ public class SelectionFragment extends Fragment implements LocationListener {
 				Double dLat = new Double(lat);
 				Double dLng = new Double(lng);
 				if(dLat != null && dLng != null){
-					makeLoc_SelfParams();
-					AsyncTaskRunner runner = new AsyncTaskRunner();
-					runner.execute();
+					try {
+						makeLoc_SelfParams();
+					} catch (ClientProtocolException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}
@@ -287,13 +309,15 @@ public class SelectionFragment extends Fragment implements LocationListener {
 						if (session == Session.getActiveSession()) {
 							user.setMyId(fbUser.getId());
 							System.out.println(fbUser.getId());
-							
-							System.out.println(user.getMyId());
 							user.setMyName((fbUser.getName()));
 							if(user.getMyId()!= null){
-								makeRegisterParams();
-								AsyncTaskRunner runner = new AsyncTaskRunner();
-								runner.execute();
+								try {
+									makeRegisterParams();
+								} catch (ClientProtocolException e) {
+									e.printStackTrace();
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
 							}
 						}
 						if (response.getError() != null) {
@@ -368,13 +392,17 @@ public class SelectionFragment extends Fragment implements LocationListener {
 
 		@Override
 		protected String doInBackground(String... params) {
-			String postResult;
+			String postResult = null;
 			try {
 				post();
-				postResult = response[0];
+				if (response != null){
+					postResult = response[0];
+				}
 			} catch (ClientProtocolException e) {
 				e.printStackTrace();
-				postResult = e.getMessage();
+				if (e != null){
+					postResult = e.getMessage();
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 				postResult = e.getMessage();
@@ -414,25 +442,33 @@ public class SelectionFragment extends Fragment implements LocationListener {
 			writer.flush();
 		}
 		response = readMultipleLinesRespone();
-		System.out.println(response[0]);
+		System.out.println("response " + postParams.get("type")+ ": " + response[0]);
 		return httpConn;
 	}
 
-	public void makeRegisterParams(){
+	public void makeRegisterParams() throws ClientProtocolException, IOException{
 		postParams.clear();
 		postParams.put("id", user.getMyId());
 		postParams.put("type", "register");
 		postParams.put("friends", "");
 		postParams.put("privacysetting", "full");
+		if (runner == null){
+			runner = new AsyncTaskRunner();
+		}
+		runner.execute();
 		return;
 	}
 	
-	public void makeLoc_SelfParams(){
+	public void makeLoc_SelfParams() throws ClientProtocolException, IOException{
 		postParams.clear();
 		postParams.put("id", user.getMyId());
 		postParams.put("type",  "loc_self");
 		postParams.put("lat", Double.toString(user.getMyLat()));
 		postParams.put("long", Double.toString(user.getMyLng()));
+		if (runner == null){
+			runner = new AsyncTaskRunner();
+		}
+		runner.execute();
 		return;
 	}
 	
@@ -458,6 +494,8 @@ public class SelectionFragment extends Fragment implements LocationListener {
 
 		return (String[]) response.toArray(new String[0]);
 	}
+	
+	
 	// Voor als we ooit de X/Y van Points (die tot nu toe NullPointers gaven)
 	// naar normale Coordinaten moeten omrekenen
 	// private Point ToGeographic(double mercatorX_lon, double mercatorY_lat)
