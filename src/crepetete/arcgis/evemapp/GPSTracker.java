@@ -104,7 +104,7 @@ public class GPSTracker extends Service implements LocationListener {
     	if(canGetLocation()){
 			double latitude = getLatitude();
 			double longitude = getLongitude();
-			System.out.println(latitude);
+			System.out.println("locationchanged" + latitude);
 			System.out.println(longitude);
 		}
     }

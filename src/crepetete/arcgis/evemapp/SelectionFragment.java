@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
 import java.util.TimerTask;
 
 import org.apache.http.client.ClientProtocolException;
@@ -73,18 +74,18 @@ public class SelectionFragment extends Fragment{
 		user = new User();
 		hm = new HttpManager();
 		
-	//	gps = new GPSTracker(getActivity());
-	//	MyTimerTask myTask = new MyTimerTask();
-//        Timer myTimer = new Timer();
-//        public void schedule (TimerTask task, long delay, long period) 
-//        Schedule a task for repeated fixed-delay execution after a specific delay.
-//
+		gps = new GPSTracker(getActivity());
+		MyTimerTask myTask = new MyTimerTask();
+		Timer myTimer = new Timer();
+//        public void schedule(TimerTask task, long delay, long period)
+ //       Schedule a task for repeated fixed-delay execution after a specific delay.
 //        Parameters
 //        task  the task to schedule. 
 //        delay  amount of time in milliseconds before first execution. 
 //        period  amount of time in milliseconds between subsequent executions. 
  
-//        myTimer.schedule(myTask, 3000, 1500);  
+        	myTimer.schedule(myTask, 3000, 1500);  
+        
 		
 		myPoint = -1;
 		
@@ -107,6 +108,20 @@ public class SelectionFragment extends Fragment{
 		mMapView.addLayer(gl);
 		
 		return view;
+	}
+
+	// respond to session changes / call makeMeRequest() if session is open
+	private void onSessionStateChange(final Session session,
+			SessionState state, Exception exception)
+			throws ClientProtocolException, IOException {
+		// onLocationChanged(locationManager.getLastKnownLocation(provider));
+		if (session != null && session.isOpened()) {
+			makeMeRequest(session);
+		} else if (!session.isOpened()) {
+			System.out.println("no session");
+		} else {
+			System.out.println("session = null");
+		}
 	}
 
 	@Override
@@ -135,19 +150,7 @@ public class SelectionFragment extends Fragment{
 		uiHelper.onDestroy();
 	}
 
-	// respond to session changes / call makeMeRequest() if session is open
-	private void onSessionStateChange(final Session session,
-			SessionState state, Exception exception)
-			throws ClientProtocolException, IOException {
-		// onLocationChanged(locationManager.getLastKnownLocation(provider));
-		if (session != null && session.isOpened()) {
-			makeMeRequest(session);
-		} else if (!session.isOpened()) {
-			System.out.println("no session");
-		} else {
-			System.out.println("session = null");
-		}
-	}
+
 
 	private void createPoint(Location location, String type) {
 		if (location != null && hm.isOnline(getActivity())) {
