@@ -14,6 +14,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import org.apache.http.client.ClientProtocolException;
 import android.app.Dialog;
 import android.content.Intent;
@@ -89,12 +92,17 @@ public class SelectionFragment extends Fragment{
 		
 		user = new User();
 		gps = new GPSTracker(getActivity());
-		if(gps.canGetLocation()){ // gps enabled} // return boolean true/false
-			double latitude = gps.getLatitude();
-            double longitude = gps.getLongitude();
-            System.out.println(latitude);
-            System.out.println(longitude);
-		}
+		MyTimerTask myTask = new MyTimerTask();
+        Timer myTimer = new Timer();
+//        public void schedule (TimerTask task, long delay, long period) 
+//        Schedule a task for repeated fixed-delay execution after a specific delay.
+//
+//        Parameters
+//        task  the task to schedule. 
+//        delay  amount of time in milliseconds before first execution. 
+//        period  amount of time in milliseconds between subsequent executions. 
+ 
+        myTimer.schedule(myTask, 3000, 1500);  
 		
 		myPoint = -1;
 		
@@ -159,17 +167,6 @@ public class SelectionFragment extends Fragment{
 		uiHelper.onDestroy();
 	}
 	
-	public void onLocationChanged(Location location) {
-	    double lat = location.getLatitude();
-	    double lng = location.getLongitude();
-	    System.out.println("lat: " + lat);
-	    System.out.println("lng: " + lng);
-	    createPoint(location, "self");
-	}
-	
-	public void onStatusChanged(String provider, int status, Bundle extras) {
-	 }
-
 	  public void onProviderEnabled(String provider) {
 	    Toast.makeText(getActivity(), "Enabled new provider " + provider, Toast.LENGTH_SHORT).show();
 
@@ -413,6 +410,30 @@ public class SelectionFragment extends Fragment{
 
 		return (String[]) response.toArray(new String[0]);
 	}
+	
+	private class MyTimerTask extends TimerTask {
+    	  public void run() {
+    		if(gps.canGetLocation()){
+    			double latitude = gps.getLatitude();
+    			double longitude = gps.getLongitude();
+    			user.setMyLat(latitude);
+    			user.setMyLng(longitude);
+    			if(user.getMyId()!= null){
+	    			try {
+						makeLoc_SelfParams();
+					} catch (ClientProtocolException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+    			}
+    			Location l = new Location("");
+    			l.setLatitude(latitude);
+    			l.setLongitude(longitude);
+    			createPoint(l, "self");
+    		}
+    	  }
+    }
 };
 
 // Voor als we ooit de X/Y van Points (die tot nu toe NullPointers gaven)
