@@ -1,17 +1,15 @@
 package crepetete.arcgis.evemapp;
 
-import android.app.AlertDialog;
 import android.app.Service;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.provider.Settings;
 import android.util.Log;
+import android.widget.Toast;
 
 public class GPSTracker extends Service implements LocationListener {
 	 
@@ -33,7 +31,7 @@ public class GPSTracker extends Service implements LocationListener {
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 10 meters
  
     // The minimum time between updates in milliseconds
-    private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 1; // 1 minute
+    private static final long MIN_TIME_BW_UPDATES = 500 * 60 * 1; // 1 minute
  
     // Declaring a Location Manager
     protected LocationManager locationManager;
@@ -103,12 +101,20 @@ public class GPSTracker extends Service implements LocationListener {
         return location;
     }
     public void onLocationChanged(Location location) {
+    	if(canGetLocation()){
+			double latitude = getLatitude();
+			double longitude = getLongitude();
+			System.out.println(latitude);
+			System.out.println(longitude);
+		}
     }
  
     public void onProviderDisabled(String provider) {
+    	Toast.makeText(this, "Disabled provider " + provider, Toast.LENGTH_SHORT).show();
     }
- 
+    
     public void onProviderEnabled(String provider) {
+    	Toast.makeText(this, "Enabled new provider " + provider, Toast.LENGTH_SHORT).show();
     }
  
     public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -151,39 +157,6 @@ public class GPSTracker extends Service implements LocationListener {
         return this.canGetLocation;
     }
      
-    /**
-     * Function to show settings alert dialog
-     * */
-    public void showSettingsAlert(){
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(mContext);
-      
-        // Setting Dialog Title
-        alertDialog.setTitle("GPS is settings");
-  
-        // Setting Dialog Message
-        alertDialog.setMessage("GPS is not enabled. Do you want to go to settings menu?");
-  
-        // Setting Icon to Dialog
-        //alertDialog.setIcon(R.drawable.delete);
-  
-        // On pressing Settings button
-        alertDialog.setPositiveButton("Settings", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog,int which) {
-                Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                mContext.startActivity(intent);
-            }
-        });
-  
-        // on pressing cancel button
-        alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-            dialog.cancel();
-            }
-        });
-  
-        // Showing Alert Message
-        alertDialog.show();
-    }
     /**
      * Stop using GPS listener
      * Calling this function will stop using GPS in your app
