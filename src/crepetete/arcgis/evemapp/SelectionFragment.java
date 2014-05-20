@@ -14,20 +14,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.http.client.ClientProtocolException;
-
-import android.annotation.SuppressLint;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.provider.Settings;
@@ -43,7 +36,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.esri.android.map.GraphicsLayer;
-import com.esri.android.map.LocationDisplayManager;
 import com.esri.android.map.MapView;
 import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
 import com.esri.android.map.event.OnSingleTapListener;
@@ -57,23 +49,16 @@ import com.facebook.SessionState;
 import com.facebook.UiLifecycleHelper;
 import com.facebook.model.GraphUser;
 
-@SuppressLint("UseValueOf")
 public class SelectionFragment extends Fragment{
 
 	private MapView mMapView;
 	private User user;
 	private GraphicsLayer gl;
-	private String provider;
 	private String[] response;
 	private Session session;
-	private AsyncTaskRunner runner;
-	private LocationDisplayManager ls;
-	
-    boolean gps_enabled=false;
-    boolean network_enabled=false;
+	private int myPoint;
+	private GPSTracker gps;
 
-	private Point testPersoon;
-	
 	private Map<String, String> postParams = new HashMap<String, String>();
 
 	private static HttpURLConnection httpConn;
@@ -82,60 +67,55 @@ public class SelectionFragment extends Fragment{
 	private Session.StatusCallback callback = new Session.StatusCallback() {
 		public void call(final Session session, final SessionState state,
 				final Exception exception) {
-			try {
-				onSessionStateChange(session, state, exception);
-			} catch (ClientProtocolException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+				try {
+					onSessionStateChange(session, state, exception);
+				} catch (ClientProtocolException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 		}
-	};;
+	};
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
 		uiHelper = new UiLifecycleHelper(getActivity(), callback);
 		uiHelper.onCreate(savedInstanceState);
-
-		LocationManager locationManager = (LocationManager) getActivity().getApplicationContext()
-	            .getSystemService(Context.LOCATION_SERVICE);
-
-	    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-	            5000, 5, listener);
-	    
-		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
-				.permitAll().build();
-		StrictMode.setThreadPolicy(policy);
-
-		user = new User();		
 		session = new Session(getActivity());
 		session.openForRead(new Session.OpenRequest(this).setCallback(callback)
-				.setPermissions(Arrays.asList("friends_birthday")));
+				.setPermissions(Arrays.asList("friends_birthday")));	
+		
+		user = new User();
+		gps = new GPSTracker(getActivity());
+		if(gps.canGetLocation()){ // gps enabled} // return boolean true/false
+			double latitude = gps.getLatitude();
+            double longitude = gps.getLongitude();
+            System.out.println(latitude);
+            System.out.println(longitude);
+		}
+		
+		myPoint = -1;
+		
+		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+		StrictMode.setThreadPolicy(policy);		
+		
 	}
 
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-			Bundle savedInstanceState) {
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		super.onCreateView(inflater, container, savedInstanceState);
-
+		
 		View view = inflater.inflate(R.layout.mainmap, container, false);
+		
 		mMapView = (MapView) view.findViewById(R.id.map);
 		mMapView.addLayer(new ArcGISTiledMapServiceLayer("" + "http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"));
 		gl = new GraphicsLayer();
-		
-		if(user.getMyId()!= null){
-		    try {
-				makeLoc_SelfParams();
-			} catch (ClientProtocolException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-	    }
 		// Voeg de onclicklistener toe
 		createMapViewTapList();
 		mMapView.addLayer(gl);
+		
 		return view;
 	}
 
@@ -178,6 +158,27 @@ public class SelectionFragment extends Fragment{
 		super.onDestroy();
 		uiHelper.onDestroy();
 	}
+	
+	public void onLocationChanged(Location location) {
+	    double lat = location.getLatitude();
+	    double lng = location.getLongitude();
+	    System.out.println("lat: " + lat);
+	    System.out.println("lng: " + lng);
+	    createPoint(location, "self");
+	}
+	
+	public void onStatusChanged(String provider, int status, Bundle extras) {
+	 }
+
+	  public void onProviderEnabled(String provider) {
+	    Toast.makeText(getActivity(), "Enabled new provider " + provider, Toast.LENGTH_SHORT).show();
+
+	  }
+
+	  public void onProviderDisabled(String provider) {
+	    Toast.makeText(getActivity(), "Disabled provider " + provider,
+	        Toast.LENGTH_SHORT).show();
+	  }
 
 	// Check of er internet is
 	public boolean isOnline() {
@@ -191,26 +192,46 @@ public class SelectionFragment extends Fragment{
 		return false;
 	}
 
-	private void createPoint(Location location) {
+	private void createPoint(Location location, String type) {
 		if (location != null && isOnline()) {
+			if (myPoint != -1) {
+				gl.removeGraphic(myPoint);
+			}
+//			// testpersoon info (hier gebruik ik de lat/long van Papendrecht,
+//			// 51.8294792/4.6964865
+//			testPersoon = ToWebMercator(4.6964865, 51.8294792);
+//
+//			// create a point marker symbol (red, size 10, of type circle)
+//			SimpleMarkerSymbol simpleMarker = new SimpleMarkerSymbol(Color.RED,
+//					10, SimpleMarkerSymbol.STYLE.CIRCLE);
+//
+//			// voeg attributen toe
+//			Map<String, Object> testAttr = new HashMap<String, Object>();
+//			testAttr.put("name", "Patrick van de Graaf");
+//			testAttr.put("type", "test");
+//
+//			// create a graphic with the geometry and marker symbol
+//			Graphic testGraphic = new Graphic(testPersoon, simpleMarker,
+//					testAttr);
+//
+//			// add the graphic to the graphics layer
+//			gl.addGraphic(testGraphic);
 
-			// testpersoon info (hier gebruik ik de lat/long van Papendrecht,
-			// 51.8294792/4.6964865
-			testPersoon = ToWebMercator(4.6964865, 51.8294792);
-
+			Point p = ToWebMercator(location.getLongitude(), location.getLatitude());
 			// create a point marker symbol (red, size 10, of type circle)
-			SimpleMarkerSymbol simpleMarker = new SimpleMarkerSymbol(Color.RED,
-					10, SimpleMarkerSymbol.STYLE.CIRCLE);
+			SimpleMarkerSymbol marker = new SimpleMarkerSymbol(Color.CYAN, 10,
+					SimpleMarkerSymbol.STYLE.CIRCLE);
 
-			// voeg attributen toe
 			Map<String, Object> attr = new HashMap<String, Object>();
-			attr.put("name", "Patrick van de Graaf");
+			attr.put("name", user.getMyName());
+			attr.put("type", type);
 
 			// create a graphic with the geometry and marker symbol
-			Graphic testGraphic = new Graphic(testPersoon, simpleMarker, attr);
-
+			Graphic g = new Graphic(p, marker, attr);
+			myPoint = g.getUid();
 			// add the graphic to the graphics layer
-			gl.addGraphic(testGraphic);
+			System.out.println("Point");
+			gl.addGraphic(g);
 
 		} else if (!isOnline()) {
 			System.out.println("Er is geen internetverbinding.");
@@ -234,7 +255,7 @@ public class SelectionFragment extends Fragment{
 							user.setMyId(fbUser.getId());
 							System.out.println(fbUser.getId());
 							user.setMyName((fbUser.getName()));
-							if(user.getMyId()!= null){
+							if (user.getMyId() != null) {
 								try {
 									makeRegisterParams();
 								} catch (ClientProtocolException e) {
@@ -312,31 +333,7 @@ public class SelectionFragment extends Fragment{
 		return p;
 	}
 
-	private class AsyncTaskRunner extends AsyncTask<String, String, String> {
-
-		@Override
-		protected String doInBackground(String... params) {
-			String postResult = null;
-			try {
-				post();
-				if (response != null){
-					postResult = response[0];
-				}
-			} catch (ClientProtocolException e) {
-				e.printStackTrace();
-				if (e != null){
-					postResult = e.getMessage();
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-				postResult = e.getMessage();
-			}
-			return postResult;
-		}
-	}
-
-	public HttpURLConnection post() throws ClientProtocolException,
-			IOException {
+	public HttpURLConnection post() throws ClientProtocolException, IOException {
 		URL url = new URL(getString(R.string.backend_site));
 		httpConn = (HttpURLConnection) url.openConnection();
 		httpConn.setUseCaches(false);
@@ -366,33 +363,35 @@ public class SelectionFragment extends Fragment{
 			writer.flush();
 		}
 		response = readMultipleLinesRespone();
-		System.out.println("response " + postParams.get("type")+ ": " + response[0]);
+		System.out.println("response " + postParams.get("type") + ": "
+				+ response[0]);
 		return httpConn;
 	}
 
-	public void makeRegisterParams() throws ClientProtocolException, IOException{
+	public void makeRegisterParams() throws ClientProtocolException,
+			IOException {
 		postParams.clear();
 		postParams.put("id", user.getMyId());
 		postParams.put("type", "register");
-		postParams.put("friends", "");
+		postParams.put("friends", "10000");
 		postParams.put("privacysetting", "full");
+//		runner = new AsyncTaskRunner();
+//		runner.execute();
 		post();
-		runner = new AsyncTaskRunner();
-		runner.execute();
 	}
-	
-	public void makeLoc_SelfParams() throws ClientProtocolException, IOException{
+
+	public void makeLoc_SelfParams() throws ClientProtocolException,
+			IOException {
 		postParams.clear();
 		postParams.put("id", user.getMyId());
-		postParams.put("type",  "loc_self");
+		postParams.put("type", "loc_self");
 		postParams.put("lat", Double.toString(user.getMyLat()));
 		postParams.put("long", Double.toString(user.getMyLng()));
-		runner = new AsyncTaskRunner();
-		runner.execute();
+//		runner = new AsyncTaskRunner();
+//		runner.execute();'
+		post();
 		return;
 	}
-	
-	
 
 	public static String[] readMultipleLinesRespone() throws IOException {
 		InputStream inputStream = null;
@@ -414,68 +413,30 @@ public class SelectionFragment extends Fragment{
 
 		return (String[]) response.toArray(new String[0]);
 	}
-	
-	private LocationListener listener = new LocationListener() {
-
-		public void onLocationChanged(Location location) {
-		    double lat = location.getLatitude();
-		    double lng = location.getLongitude();
-		    createPoint(location);
-		    user.setMyLat(lat);
-		    user.setMyLng(lng);
-		    if(user.getMyId()!= null){
-			    try {
-					makeLoc_SelfParams();
-				} catch (ClientProtocolException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-		    }
-		}
-
-	    public void onProviderDisabled(String arg0) {
-			Toast.makeText(getActivity(), "Disabled provider " + provider,
-					Toast.LENGTH_SHORT).show();
-		}
-
-	    public void onProviderEnabled(String arg0) {
-			Toast.makeText(getActivity(), "Enabled new provider " + provider,
-					Toast.LENGTH_SHORT).show();
-		}
-
-	    public void onStatusChanged(String provider, int status, Bundle extras) {
-			if (isOnline()) {
-				System.out.println("Verbinding is terug");
-			} else {
-				System.out.println("Geen internerverbinding");
-			}
-		}
-	};
 };
-	
-	// Voor als we ooit de X/Y van Points (die tot nu toe NullPointers gaven)
-	// naar normale Coordinaten moeten omrekenen
-	// private Point ToGeographic(double mercatorX_lon, double mercatorY_lat)
-	// {
-	// if (Math.abs(mercatorX_lon) < 180 && Math.abs(mercatorY_lat) < 90){
-	// return null;
-	// }
-	// if ((Math.abs(mercatorX_lon) > 20037508.3427892) ||
-	// (Math.abs(mercatorY_lat) > 20037508.3427892)){
-	// return null;
-	// }
-	// double x = mercatorX_lon;
-	// double y = mercatorY_lat;
-	// double num3 = x / 6378137.0;
-	// double num4 = num3 * 57.295779513082323;
-	// double num5 = Math.floor((double)((num4 + 180.0) / 360.0));
-	// double num6 = num4 - (num5 * 360.0);
-	// double num7 = 1.5707963267948966 - (2.0 * Math.atan(Math.exp((-1.0 * y) /
-	// 6378137.0)));
-	// mercatorX_lon = num6;
-	// mercatorY_lat = num7 * 57.295779513082323;
-	//
-	// Point p = new Point(mercatorX_lon, mercatorY_lat);
-	// return p;
-	// }
+
+// Voor als we ooit de X/Y van Points (die tot nu toe NullPointers gaven)
+// naar normale Coordinaten moeten omrekenen
+// private Point ToGeographic(double mercatorX_lon, double mercatorY_lat)
+// {
+// if (Math.abs(mercatorX_lon) < 180 && Math.abs(mercatorY_lat) < 90){
+// return null;
+// }
+// if ((Math.abs(mercatorX_lon) > 20037508.3427892) ||
+// (Math.abs(mercatorY_lat) > 20037508.3427892)){
+// return null;
+// }
+// double x = mercatorX_lon;
+// double y = mercatorY_lat;
+// double num3 = x / 6378137.0;
+// double num4 = num3 * 57.295779513082323;
+// double num5 = Math.floor((double)((num4 + 180.0) / 360.0));
+// double num6 = num4 - (num5 * 360.0);
+// double num7 = 1.5707963267948966 - (2.0 * Math.atan(Math.exp((-1.0 * y) /
+// 6378137.0)));
+// mercatorX_lon = num6;
+// mercatorY_lat = num7 * 57.295779513082323;
+//
+// Point p = new Point(mercatorX_lon, mercatorY_lat);
+// return p;
+// }

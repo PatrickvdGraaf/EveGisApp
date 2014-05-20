@@ -43,7 +43,6 @@ public class MainActivity  extends FragmentActivity{
 	    FragmentManager fm = getSupportFragmentManager();
 	    fragments[SPLASH] = fm.findFragmentById(R.id.splashFragment);
 	    fragments[SELECTION] = fm.findFragmentById(R.id.selectionFragment);
-	    fragments[SELECTION] = fm.findFragmentById(R.id.selectionFragment);
 	    fragments[SETTINGS] = fm.findFragmentById(R.id.userSettingsFragment);
 	    
 	    FragmentTransaction transaction = fm.beginTransaction();
