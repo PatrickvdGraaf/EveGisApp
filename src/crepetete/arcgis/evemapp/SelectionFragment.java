@@ -2,20 +2,19 @@ package crepetete.arcgis.evemapp;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import org.apache.http.client.ClientProtocolException;
+
 import android.app.Dialog;
-import android.content.Intent;
-import android.graphics.Color;
+import android.content.Context;
+import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.provider.Settings;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -23,13 +22,14 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.MapView;
 import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
 import com.esri.android.map.event.OnSingleTapListener;
 import com.esri.core.geometry.Point;
 import com.esri.core.map.Graphic;
-import com.esri.core.symbol.SimpleMarkerSymbol;
 import com.facebook.Request;
 import com.facebook.Response;
 import com.facebook.Session;
@@ -37,16 +37,21 @@ import com.facebook.SessionState;
 import com.facebook.UiLifecycleHelper;
 import com.facebook.model.GraphUser;
 
-public class SelectionFragment extends Fragment{
+public class SelectionFragment extends Fragment implements LocationListener {
 
 	private MapView mMapView;
 	private User user;
 	private GraphicsLayer gl;
 	private Session session;
-	private int myPoint;
-	private GPSTracker gps;
 	private HttpManager hm;
+	private LocationManager locationManager;
+	LocationListener locationListener;
+	private String provider;
+	
 
+	//Facebook's must-have in een app, This class helps to create, 
+	//automatically open (if applicable), save, 
+	//and restore the Active Session in a way that is similar to Android UI lifecycles. 
 	private UiLifecycleHelper uiHelper;
 	private Session.StatusCallback callback = new Session.StatusCallback() {
 		public void call(final Session session, final SessionState state,
@@ -60,59 +65,106 @@ public class SelectionFragment extends Fragment{
 				}
 		}
 	};
-
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
 		uiHelper = new UiLifecycleHelper(getActivity(), callback);
 		uiHelper.onCreate(savedInstanceState);
+		
 		session = new Session(getActivity());
 		session.openForRead(new Session.OpenRequest(this).setCallback(callback)
 				.setPermissions(Arrays.asList("friends_birthday")));	
 		
+		//Solves NetworkOnMainThreadException
+		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+		StrictMode.setThreadPolicy(policy);	
+		
+		//define user, the class to handle internet stuff and the class to handle GPS stuff
 		user = new User();
 		hm = new HttpManager();
-		
-		gps = new GPSTracker(getActivity());
-		MyTimerTask myTask = new MyTimerTask();
-		Timer myTimer = new Timer();
-//        public void schedule(TimerTask task, long delay, long period)
- //       Schedule a task for repeated fixed-delay execution after a specific delay.
-//        Parameters
-//        task  the task to schedule. 
-//        delay  amount of time in milliseconds before first execution. 
-//        period  amount of time in milliseconds between subsequent executions. 
- 
-        	myTimer.schedule(myTask, 3000, 1500);  
-        
-		
-		myPoint = -1;
-		
-		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-		StrictMode.setThreadPolicy(policy);		
-		
 	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		super.onCreateView(inflater, container, savedInstanceState);
-		
 		View view = inflater.inflate(R.layout.mainmap, container, false);
 		
+		//Create mapview with a graphic layer and an onclicklistener
 		mMapView = (MapView) view.findViewById(R.id.map);
 		mMapView.addLayer(new ArcGISTiledMapServiceLayer("" + "http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"));
 		gl = new GraphicsLayer();
-		// Voeg de onclicklistener toe
 		createMapViewTapList();
 		mMapView.addLayer(gl);
 		
+//		LocationManager service = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+//		boolean enabled = service.isProviderEnabled(LocationManager.GPS_PROVIDER);	
+//		
+//		// check if enabled and if not send user to the GSP settings
+//		// Better solution would be to display a dialog and suggesting to 
+//		// go to the settings
+//		if (!enabled) {
+//			Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+//			startActivity(intent);
+//		}				
+//				
+//		// Define the criteria how to select the locatioin provider -> use
+//	    // default
+//	    Criteria criteria = new Criteria();
+//	    provider = locationManager.getBestProvider(criteria, false);
+//		Location location = locationManager.getLastKnownLocation(provider);
+//	    
+//		// Initialize the location fields
+//		   if (location != null) {
+//		      System.out.println("Provider " + provider + " has been selected.");
+//		      onLocationChanged(location);
+//		    } else {
+//		    	System.out.println("Location not available");
+//		    }
+		
 		return view;
 	}
+	
+	@Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+       super.onActivityCreated(savedInstanceState);
+       locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
+       locationListener = new LocationListener(){
+    	   public void onLocationChanged(Location location) {
+    	        if(location != null){
+    	            System.out.println(location.getLatitude()); 
+    	        }
+    	    }
 
+    	    public void onProviderDisabled(String provider) {
+    	        locationManager = (LocationManager)getActivity().getSystemService(Context.LOCATION_SERVICE);
+    	        if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+    	            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+    	        } else {
+    	            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+    	        }
+    	    }
+
+    	    public void onProviderEnabled(String provider) {
+    	        locationManager = (LocationManager)getActivity().getSystemService(Context.LOCATION_SERVICE);
+    	        if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+    	            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+    	        } else {
+    	            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+    	        }
+    	    }
+
+    	    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    	    }
+
+    	};
+    	
+    	locationManager.requestLocationUpdates (LocationManager.GPS_PROVIDER, 5000, 0, locationListener);
+      }
+	
 	// respond to session changes / call makeMeRequest() if session is open
-	private void onSessionStateChange(final Session session,
-			SessionState state, Exception exception)
+	private void onSessionStateChange(final Session session, SessionState state, Exception exception)
 			throws ClientProtocolException, IOException {
 		// onLocationChanged(locationManager.getLastKnownLocation(provider));
 		if (session != null && session.isOpened()) {
@@ -129,6 +181,8 @@ public class SelectionFragment extends Fragment{
 		super.onResume();
 		uiHelper.onResume();
 		mMapView.unpause();
+		Criteria criteria = new Criteria();
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 400, 1, this);
 	}
 
 	@Override
@@ -142,6 +196,7 @@ public class SelectionFragment extends Fragment{
 		super.onPause();
 		uiHelper.onPause();
 		mMapView.pause();
+		locationManager.removeUpdates(this);
 	}
 
 	@Override
@@ -150,39 +205,56 @@ public class SelectionFragment extends Fragment{
 		uiHelper.onDestroy();
 	}
 
+	public void onLocationChanged(Location location) {
+	    int lat = (int) (location.getLatitude());
+	    int lng = (int) (location.getLongitude());
+	    System.out.println(lat);
+	    System.out.println(lng);
+	  }
+	
+	public void onStatusChanged(String provider, int status, Bundle extras) {
+	    // TODO Auto-generated method stub
 
+	  }
 
-	private void createPoint(Location location, String type) {
-		if (location != null && hm.isOnline(getActivity())) {
-			if (myPoint != -1) {
-				gl.removeGraphic(myPoint);
-			}
+	  public void onProviderEnabled(String provider) {
+	    Toast.makeText(getActivity(), "Enabled new provider " + provider,
+	        Toast.LENGTH_SHORT).show();
 
-			Point p = ToWebMercator(location.getLongitude(), location.getLatitude());
-			// create a point marker symbol (red, size 10, of type circle)
-			SimpleMarkerSymbol marker = new SimpleMarkerSymbol(Color.CYAN, 10,
-					SimpleMarkerSymbol.STYLE.CIRCLE);
+	  }
 
-			Map<String, Object> attr = new HashMap<String, Object>();
-			attr.put("name", user.getMyName());
-			attr.put("type", type);
+	  public void onProviderDisabled(String provider) {
+	    Toast.makeText(getActivity(), "Disabled provider " + provider,
+	        Toast.LENGTH_SHORT).show();
+	  }
 
-			// create a graphic with the geometry and marker symbol
-			Graphic g = new Graphic(p, marker, attr);
-			myPoint = g.getUid();
-			// add the graphic to the graphics layer
-			System.out.println("Point");
-			gl.addGraphic(g);
-
-		} else if (!hm.isOnline(getActivity())) {
-			System.out.println("Er is geen internetverbinding.");
-		} else if (location == null) {
-			System.out.println("fail on location");
-			Intent intentLocSource = new Intent(
-					Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-			startActivity(intentLocSource);
-		}
-	}
+//	private void createPoint(Location location, String type) {
+//		if (location != null && hm.isOnline(getActivity())) {
+//			
+//			Point p = ToWebMercator(location.getLongitude(), location.getLatitude());
+//			// create a point marker symbol (red, size 10, of type circle)
+//			SimpleMarkerSymbol marker = new SimpleMarkerSymbol(Color.CYAN, 10,
+//					SimpleMarkerSymbol.STYLE.CIRCLE);
+//
+//			Map<String, Object> attr = new HashMap<String, Object>();
+//			attr.put("name", user.getMyName());
+//			attr.put("type", type);
+//
+//			// create a graphic with the geometry and marker symbol
+//			Graphic g = new Graphic(p, marker, attr);
+//			
+//			// add the graphic to the graphics layer
+//			gl.addGraphic(g);
+//
+//		} else if (!hm.isOnline(getActivity())) {
+//			System.out.println("Er is geen internetverbinding.");
+//		} else if (location == null) {
+//			System.out.println("fail on location");
+//			Intent intentLocSource = new Intent(
+//					Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+//			startActivity(intentLocSource);
+//		}
+//	}
 
 	// request user data
 	private void makeMeRequest(final Session session) {
@@ -274,29 +346,25 @@ public class SelectionFragment extends Fragment{
 		return p;
 	}
 	
-	private class MyTimerTask extends TimerTask {
-    	  public void run() {
-    		if(gps.canGetLocation()){
-    			double latitude = gps.getLatitude();
-    			double longitude = gps.getLongitude();
-    			user.setMyLat(latitude);
-    			user.setMyLng(longitude);
-    			if(user.getMyId()!= null){
-	    			try {
-						hm.makeLoc_SelfParams(user, getActivity());
-					} catch (ClientProtocolException e) {
-						e.printStackTrace();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-    			}
-    			Location l = new Location("");
-    			l.setLatitude(latitude);
-    			l.setLongitude(longitude);
-    			createPoint(l, "self");
-    		}
-    	  }
-    }
+//	private class MyTimerTask extends TimerTask {
+//    	  public void run() {
+//    		  gps = new GPSTracker(getActivity());
+//    		  
+//              // check if GPS enabled     
+//              if(gps.canGetLocation()){
+//                   
+//                  double latitude = gps.getLatitude();
+//                  double longitude = gps.getLongitude();
+//                  System.out.println("location: " + latitude + ", " + longitude);
+//                   }else{
+//                  // can't get location
+//                  // GPS or Network is not enabled
+//                  // Ask user to enable GPS/network in settings
+//                	   System.out.println("fail");
+//              }
+//    		
+//    	  }
+//    }
 };
 
 // Voor als we ooit de X/Y van Points (die tot nu toe NullPointers gaven)
