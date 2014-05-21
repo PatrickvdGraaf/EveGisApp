@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class User {	
-	private String myId; //Dummy ID
+	private String myId;
 	private String name;
 	private double myLat;
 	private double myLng;

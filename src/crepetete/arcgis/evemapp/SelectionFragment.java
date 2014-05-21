@@ -7,14 +7,12 @@ import org.apache.http.client.ClientProtocolException;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -37,8 +35,9 @@ import com.facebook.SessionState;
 import com.facebook.UiLifecycleHelper;
 import com.facebook.model.GraphUser;
 
-public class SelectionFragment extends Fragment implements LocationListener {
+public class SelectionFragment extends Fragment implements LocationListener{
 
+	//test 
 	private MapView mMapView;
 	private User user;
 	private GraphicsLayer gl;
@@ -46,9 +45,8 @@ public class SelectionFragment extends Fragment implements LocationListener {
 	private HttpManager hm;
 	private LocationManager locationManager;
 	LocationListener locationListener;
-	private String provider;
+	String provider;
 	
-
 	//Facebook's must-have in een app, This class helps to create, 
 	//automatically open (if applicable), save, 
 	//and restore the Active Session in a way that is similar to Android UI lifecycles. 
@@ -65,6 +63,7 @@ public class SelectionFragment extends Fragment implements LocationListener {
 				}
 		}
 	};
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -97,71 +96,18 @@ public class SelectionFragment extends Fragment implements LocationListener {
 		createMapViewTapList();
 		mMapView.addLayer(gl);
 		
-//		LocationManager service = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
-//		boolean enabled = service.isProviderEnabled(LocationManager.GPS_PROVIDER);	
-//		
-//		// check if enabled and if not send user to the GSP settings
-//		// Better solution would be to display a dialog and suggesting to 
-//		// go to the settings
-//		if (!enabled) {
-//			Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-//			startActivity(intent);
-//		}				
-//				
-//		// Define the criteria how to select the locatioin provider -> use
-//	    // default
-//	    Criteria criteria = new Criteria();
-//	    provider = locationManager.getBestProvider(criteria, false);
-//		Location location = locationManager.getLastKnownLocation(provider);
-//	    
-//		// Initialize the location fields
-//		   if (location != null) {
-//		      System.out.println("Provider " + provider + " has been selected.");
-//		      onLocationChanged(location);
-//		    } else {
-//		    	System.out.println("Location not available");
-//		    }
-		
 		return view;
 	}
 	
 	@Override
     public void onActivityCreated(Bundle savedInstanceState) {
        super.onActivityCreated(savedInstanceState);
-       locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
-       locationListener = new LocationListener(){
-    	   public void onLocationChanged(Location location) {
-    	        if(location != null){
-    	            System.out.println(location.getLatitude()); 
-    	        }
-    	    }
-
-    	    public void onProviderDisabled(String provider) {
-    	        locationManager = (LocationManager)getActivity().getSystemService(Context.LOCATION_SERVICE);
-    	        if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-    	            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-    	        } else {
-    	            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-    	        }
-    	    }
-
-    	    public void onProviderEnabled(String provider) {
-    	        locationManager = (LocationManager)getActivity().getSystemService(Context.LOCATION_SERVICE);
-    	        if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-    	            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-    	        } else {
-    	            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-    	        }
-    	    }
-
-    	    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    	    }
-
-    	};
-    	
-    	locationManager.requestLocationUpdates (LocationManager.GPS_PROVIDER, 5000, 0, locationListener);
-      }
+       locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+       locationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER, 3000, 10, this);
+        
+       /********* After registration onLocationChanged method  ********/
+       /********* called periodically after each 3 sec ***********/
+	}
 	
 	// respond to session changes / call makeMeRequest() if session is open
 	private void onSessionStateChange(final Session session, SessionState state, Exception exception)
@@ -181,8 +127,6 @@ public class SelectionFragment extends Fragment implements LocationListener {
 		super.onResume();
 		uiHelper.onResume();
 		mMapView.unpause();
-		Criteria criteria = new Criteria();
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 400, 1, this);
 	}
 
 	@Override
@@ -196,7 +140,6 @@ public class SelectionFragment extends Fragment implements LocationListener {
 		super.onPause();
 		uiHelper.onPause();
 		mMapView.pause();
-		locationManager.removeUpdates(this);
 	}
 
 	@Override
@@ -204,13 +147,13 @@ public class SelectionFragment extends Fragment implements LocationListener {
 		super.onDestroy();
 		uiHelper.onDestroy();
 	}
-
+	
 	public void onLocationChanged(Location location) {
-	    int lat = (int) (location.getLatitude());
-	    int lng = (int) (location.getLongitude());
-	    System.out.println(lat);
-	    System.out.println(lng);
-	  }
+            
+        String str = "Latitude: "+location.getLatitude()+" Longitude: "+location.getLongitude();
+
+        Toast.makeText(getActivity(), str, Toast.LENGTH_LONG).show();
+    }
 	
 	public void onStatusChanged(String provider, int status, Bundle extras) {
 	    // TODO Auto-generated method stub
