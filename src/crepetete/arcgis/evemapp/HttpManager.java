@@ -65,8 +65,8 @@ public class HttpManager {
 	}
 	
 	// Check of er internet is
-	public boolean isOnline(FragmentActivity fragmentActivity) {
-		ConnectivityManager cm = (ConnectivityManager) fragmentActivity.getSystemService(FragmentActivity.CONNECTIVITY_SERVICE);
+	public boolean isOnline(MainMap mainMap) {
+		ConnectivityManager cm = (ConnectivityManager) mainMap.getSystemService(FragmentActivity.CONNECTIVITY_SERVICE);
 		NetworkInfo netInfo = cm.getActiveNetworkInfo();
 		if (netInfo != null && netInfo.isConnectedOrConnecting()) {
 			return true;
