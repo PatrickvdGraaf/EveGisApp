@@ -28,9 +28,9 @@ public class HttpManager {
 	private static HttpURLConnection httpConn;
 	
 	private String[] response;
+	private URL url;
 
-	public HttpURLConnection post(Context context) throws ClientProtocolException, IOException {
-		URL url = new URL(context.getString(R.string.backend_site));
+	public HttpURLConnection post(URL url, boolean isJSONResponse) throws ClientProtocolException, IOException {
 		httpConn = (HttpURLConnection) url.openConnection();
 		httpConn.setUseCaches(false);
 
@@ -46,12 +46,12 @@ public class HttpManager {
 			while (paramIterator.hasNext()) {
 				String key = paramIterator.next();
 				String value = postParams.get(key);
+				System.out.println("value " + value);
 				requestParams.append(URLEncoder.encode(key, "UTF-8"));
-				requestParams.append("=").append(
-						URLEncoder.encode(value, "UTF-8"));
+				requestParams.append("=").append(URLEncoder.encode(value, "UTF-8"));
 				requestParams.append("&");
 			}
-			System.out.println(requestParams.toString());
+			System.out.println("requestParams " + requestParams.toString());
 			// sends POST data
 			OutputStreamWriter writer = new OutputStreamWriter(
 					httpConn.getOutputStream());
@@ -59,8 +59,7 @@ public class HttpManager {
 			writer.flush();
 		}
 		response = readMultipleLinesRespone();
-		System.out.println("response " + postParams.get("type") + ": "
-				+ response[0]);
+		System.out.println("response " + response[0]);
 		return httpConn;
 	}
 	
@@ -77,23 +76,26 @@ public class HttpManager {
 	public void makeRegisterParams(User user, Context c) throws ClientProtocolException, IOException {
 		postParams.clear();
 		postParams.put("id", user.getMyId());
-		postParams.put("type", "register");
-		postParams.put("friends", "10000");
+		postParams.put("friends", "10202127732734664");
 		postParams.put("privacysetting", "full");
-		//runner = new AsyncTaskRunner();
-		//runner.execute();
-		post(c);
+		url = new URL(c.getString(R.string.backend_register));
+		post(url, false);
+	}
+	
+	public void getLocOthers(User user, Context c) throws ClientProtocolException, IOException {
+		postParams.clear();
+		postParams.put("id", user.getMyId());
+		url = new URL(c.getString(R.string.backend_loc_others));
+		post(url, true);
 	}
 	
 	public void makeLoc_SelfParams(User user, Context c) throws ClientProtocolException, IOException {
 		postParams.clear();
 		postParams.put("id", user.getMyId());
-		postParams.put("type", "loc_self");
 		postParams.put("lat", Double.toString(user.getMyLat()));
-		postParams.put("long", Double.toString(user.getMyLng()));
-		//runner = new AsyncTaskRunner();
-		//runner.execute();'
-		post(c);
+		postParams.put("lng", Double.toString(user.getMyLng()));
+		url = new URL(c.getString(R.string.backend_location_self));
+		post(url, false);
 	}
 	
 	public static String[] readMultipleLinesRespone() throws IOException {
@@ -111,6 +113,7 @@ public class HttpManager {
 		String line = "";
 		while ((line = reader.readLine()) != null) {
 			response.add(line);
+			System.out.println("line "+line);
 		}
 		reader.close();
 
