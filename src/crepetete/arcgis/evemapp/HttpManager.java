@@ -16,8 +16,6 @@ import java.util.Map;
 
 
 import org.apache.http.client.ClientProtocolException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -51,7 +49,6 @@ public class HttpManager {
 			while (paramIterator.hasNext()) {
 				String key = paramIterator.next();
 				String value = postParams.get(key);
-				System.out.println("value " + value);
 				requestParams.append(URLEncoder.encode(key, "UTF-8"));
 				requestParams.append("=").append(URLEncoder.encode(value, "UTF-8"));
 				requestParams.append("&");
@@ -78,13 +75,11 @@ public class HttpManager {
 		if (postParams != null && postParams.size() > 0) {
 
 			httpConn.setDoOutput(true); // true indicates POST request
-			System.out.println("postparams " + postParams);
 			// creates the params string, encode them using URLEncoder
 			Iterator<String> paramIterator = (postParams).keySet().iterator();
 			while (paramIterator.hasNext()) {
 				String key = paramIterator.next();
 				String value = postParams.get(key);
-				System.out.println("value " + value);
 				requestParams.append(URLEncoder.encode(key, "UTF-8"));
 				requestParams.append("=").append(URLEncoder.encode(value, "UTF-8"));
 				requestParams.append("&");
@@ -152,7 +147,6 @@ public class HttpManager {
 		String line = "";
 		while ((line = reader.readLine()) != null) {
 			response.add(line);
-			System.out.println("line "+line);
 		}
 		reader.close();
 
