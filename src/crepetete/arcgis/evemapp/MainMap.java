@@ -49,6 +49,8 @@ public class MainMap extends Activity implements LocationListener {
 	private String provider;
 	private ProfilePictureView profilePictureView;
 	private Button friendsPage;
+	private Button activityPage;
+	private Button myLocation;
 	private TextView userNameView;
 	private ArrayList<Friend> friendsList;
 
@@ -71,6 +73,10 @@ public class MainMap extends Activity implements LocationListener {
 	    profilePictureView.setCropped(true);
 	    friendsPage = (Button) findViewById(R.id.friends);
 	    friendsPage.setOnClickListener(friendButtonHandler);
+	    activityPage = (Button) findViewById(R.id.activitymanager);
+	    activityPage.setOnClickListener(eventButtonHandler);
+	    myLocation = (Button) findViewById(R.id.myLocation);
+	    myLocation.setOnClickListener(locationButtonHandler);
 	    
 	    userNameView = (TextView) findViewById(R.id.selection_user_name);
 		// Add dynamic layer to MapView
@@ -172,6 +178,7 @@ public class MainMap extends Activity implements LocationListener {
 	}
 
 	public void onLocationChanged(Location loc) {
+		location = loc;
 		double lat = loc.getLatitude();
 		double lng = loc.getLongitude();
 		user.setMyLat(lat);
@@ -311,7 +318,27 @@ public class MainMap extends Activity implements LocationListener {
 				myIntent.putExtra("friendList", friendsList);
 				MainMap.this.startActivity(myIntent);	
 		    }
-		  };
+	};
+	
+	View.OnClickListener eventButtonHandler = new View.OnClickListener() {
+	    public void onClick(View v) {
+	    	Intent myIntent = new Intent(MainMap.this, EventPicker.class);
+	    	myIntent.putExtra("userId", user.getMyId());
+	    	myIntent.putExtra("userName", user.getMyName());
+			myIntent.putExtra("friendList", friendsList);
+			MainMap.this.startActivity(myIntent);	
+	    }
+	};
+	
+	View.OnClickListener locationButtonHandler = new View.OnClickListener() {
+	    public void onClick(View v) {
+	    	if(location != null){
+	    		Point myPoint = ToWebMercator(location.getLongitude(), location.getLatitude());
+		    	mMapView.centerAt(myPoint, true);
+		    	mMapView.zoomToResolution(myPoint, 100);
+	    	}
+	    }
+	};
 }
 
 // Voor als we ooit de X/Y van Points (die tot nu toe NullPointers gaven)

@@ -51,6 +51,10 @@
             android:name="crepetete.arcgis.evemapp.FriendsList"
             android:label="@string/title_activity_friends_list" >
         </activity>
+        <activity
+            android:name="crepetete.arcgis.evemapp.EventPicker"
+            android:label="@string/title_activity_event_picker" >
+        </activity>
     </application>
 
 </manifest>

@@ -26,6 +26,13 @@
             android:layout_marginLeft="10dp"
             android:textColor="#FFFFFF"
             android:textSize="18sp" />
+        <Button
+            android:id="@+id/activitymanager"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="55dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="right"
+            android:background="@drawable/plus" />
 
         <Button
             android:id="@+id/friends"
@@ -36,6 +43,10 @@
             android:background="@drawable/friends" />
     
     </LinearLayout>
+    
+	<RelativeLayout
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent" >
 
 <!-- MapView layout and initial extent -->
 	<com.esri.android.map.MapView
@@ -43,4 +54,17 @@
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent">
 	</com.esri.android.map.MapView>
+
+	<Button
+	    android:id="@+id/myLocation"
+	    style="?android:attr/buttonStyleSmall"
+	    android:layout_width="40dp"
+	    android:layout_height="40dp"
+	    android:layout_alignParentBottom="true"
+	    android:layout_alignParentRight="true"
+	    android:layout_marginBottom="10dp"
+	    android:layout_marginRight="10dp"
+	    android:background="@drawable/scope" />
+
+	</RelativeLayout>
 </LinearLayout>

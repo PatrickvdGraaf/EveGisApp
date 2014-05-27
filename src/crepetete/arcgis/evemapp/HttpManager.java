@@ -107,6 +107,20 @@ public class HttpManager {
 		return false;
 	}
 	
+	public JSONObject getLocOthers(User user, Context c) throws ClientProtocolException, IOException, JSONException {
+		postParams.clear();
+		postParams.put("id", user.getMyId());
+		url = new URL(c.getString(R.string.backend_loc_others));
+		return postWithJSONResponse(url);
+	}
+	
+	public JSONObject getEvent(String eventId, Context c) throws ClientProtocolException, IOException, JSONException {
+		postParams.clear();
+		postParams.put("id", eventId);
+		url = new URL(c.getString(R.string.backend_loc_others));
+		return postWithJSONResponse(url);
+	}
+	
 	public void makeRegisterParams(User user, Context c, ArrayList<Friend> friendsList) throws ClientProtocolException, IOException {
 		postParams.clear();
 		postParams.put("id", user.getMyId());
@@ -116,13 +130,6 @@ public class HttpManager {
 		postParams.put("privacysetting", "full");
 		url = new URL(c.getString(R.string.backend_register));
 		post(url);
-	}
-	
-	public JSONObject getLocOthers(User user, Context c) throws ClientProtocolException, IOException, JSONException {
-		postParams.clear();
-		postParams.put("id", user.getMyId());
-		url = new URL(c.getString(R.string.backend_loc_others));
-		return postWithJSONResponse(url);
 	}
 	
 	public void makeLoc_SelfParams(User user, Context c) throws ClientProtocolException, IOException {
