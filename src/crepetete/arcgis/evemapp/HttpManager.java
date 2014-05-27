@@ -107,10 +107,12 @@ public class HttpManager {
 		return false;
 	}
 	
-	public void makeRegisterParams(User user, Context c) throws ClientProtocolException, IOException {
+	public void makeRegisterParams(User user, Context c, ArrayList<Friend> friendsList) throws ClientProtocolException, IOException {
 		postParams.clear();
 		postParams.put("id", user.getMyId());
-		postParams.put("friends", "10202127732734664");
+		for(int i=0; i<friendsList.size();i++){
+			postParams.put("friends", friendsList.get(i).getId());
+		}
 		postParams.put("privacysetting", "full");
 		url = new URL(c.getString(R.string.backend_register));
 		post(url);
