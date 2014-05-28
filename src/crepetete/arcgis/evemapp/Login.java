@@ -14,6 +14,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.facebook.Request;
 import com.facebook.Response;
@@ -24,10 +26,14 @@ import com.facebook.Request.GraphUserListCallback;
 import com.facebook.model.GraphObject;
 import com.facebook.model.GraphUser;
 import com.facebook.widget.LoginButton;
+import com.facebook.widget.ProfilePictureView;
 
 public class Login extends Activity {
 	private GraphUser user;
 	private LoginButton loginbut;
+	private ProfilePictureView profilePictureView;
+	private TextView username;
+	private ProgressBar spinner;
 	private UiLifecycleHelper uihelper;
 	private ArrayList<Friend> friendsList;
 	private boolean meRequestCompleted = false;
@@ -46,8 +52,12 @@ public class Login extends Activity {
 		//Remove title bar
 	    this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.login);
+		spinner = (ProgressBar) findViewById(R.id.spinner);
 		loginbut = (LoginButton) findViewById(R.id.login_button);
 		loginbut.setVisibility(View.GONE);
+		profilePictureView = (ProfilePictureView) findViewById(R.id.selection_profile_pic);
+		profilePictureView.setVisibility(View.GONE);
+		username = (TextView) findViewById(R.id.selection_user_name);
 		uihelper = new UiLifecycleHelper(this, callback);
 		uihelper.onCreate(savedInstanceState);
 		
@@ -87,6 +97,7 @@ public class Login extends Activity {
 					public void onCompleted(GraphUser user, Response response) {
 						if (user.getId() != null && user.getName() != null) {
 								meRequestCompleted = true;
+								profilePictureView.setProfileId(user.getId());
 								if (friendRequestCompleted){
 									startMainMap(user);
 								}
@@ -177,6 +188,9 @@ public class Login extends Activity {
 		myIntent.putExtra("name", user.getName());
 		myIntent.putExtra("friendList", friendsList);
 		loginbut.setVisibility(View.VISIBLE);
+		profilePictureView.setVisibility(View.VISIBLE);
+        username.setText(user.getName());
+        spinner.setVisibility(View.GONE);
 		Login.this.startActivity(myIntent);	
 	}
 

@@ -150,7 +150,8 @@ public class HttpManager {
 		}
 
 		BufferedReader reader = new BufferedReader(new InputStreamReader(
-				inputStream));
+				inputStream
+				));
 		List<String> response = new ArrayList<String>();
 
 		String line = "";

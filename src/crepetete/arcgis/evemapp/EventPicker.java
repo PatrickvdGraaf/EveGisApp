@@ -23,7 +23,7 @@ public class EventPicker extends Activity {
 		
 		eventIdET = (EditText) findViewById(R.id.ETeventId);
 		
-		eventSearchB = (Button) findViewById(R.id.friends);
+		eventSearchB = (Button) findViewById(R.id.BeventSearch);
 		eventSearchB.setOnClickListener(eventSearchButtonHandler);
 	}
 	
