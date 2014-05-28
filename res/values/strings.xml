@@ -29,5 +29,6 @@
     <string name="title_activity_login">Login</string>
     <string name="title_activity_friends_list">FriendsList</string>
     <string name="title_activity_event_picker">EventPicker</string>
+    <string name="logout">Logout</string>
 
 </resources>

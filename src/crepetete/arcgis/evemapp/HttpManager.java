@@ -20,6 +20,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.v4.app.FragmentActivity;
@@ -121,6 +130,16 @@ public class HttpManager {
 		return postWithJSONResponse(url);
 	}
 	
+	public Drawable LoadImageFromWebOperations(String url) {
+	    try {
+	        InputStream is = (InputStream) new URL(url).getContent();
+	        Drawable d = Drawable.createFromStream(is, "src name");
+	        return d;
+	    } catch (Exception e) {
+	        return null;
+	    }
+	}
+	
 	public void makeRegisterParams(User user, Context c, ArrayList<Friend> friendsList) throws ClientProtocolException, IOException {
 		postParams.clear();
 		postParams.put("id", user.getMyId());
@@ -161,5 +180,33 @@ public class HttpManager {
 		reader.close();
 
 		return (String[]) response.toArray(new String[0]);
+	}
+
+	public Bitmap getFacebookBitMap(String s) throws IOException {
+		URL url_value = new URL(s);
+		Bitmap bm = getRoundedShape(BitmapFactory.decodeStream(url_value.openConnection().getInputStream()));
+		return bm;
+	}
+	
+	public Bitmap getRoundedShape(Bitmap scaleBitmapImage) {
+		int targetWidth = 50;
+		int targetHeight = 50;
+		Bitmap targetBitmap = Bitmap.createBitmap(targetWidth, targetHeight,Bitmap.Config.ARGB_8888);
+		Canvas canvas = new Canvas(targetBitmap);
+		Path path = new Path();
+		path.addCircle(((float) targetWidth) / 2,((float) targetHeight) / 2,(Math.min(((float) targetWidth), ((float) targetHeight)) / 2),Path.Direction.CW);
+		Paint paint = new Paint(); 
+		paint.setColor(Color.GRAY); 
+		//paint.setStyle(Paint.Style.STROKE);
+		paint.setStyle(Paint.Style.FILL);
+		paint.setAntiAlias(true);
+		paint.setDither(true);
+		paint.setFilterBitmap(true);
+		canvas.drawOval(new RectF(0, 0, targetWidth, targetHeight), paint) ;
+		//paint.setColor(Color.TRANSPARENT); 
+		canvas.clipPath(path);
+		Bitmap sourceBitmap = scaleBitmapImage;
+		canvas.drawBitmap(sourceBitmap, new Rect(0, 0, sourceBitmap.getWidth(),sourceBitmap.getHeight()), new RectF(0, 0, targetWidth, targetHeight), paint);
+		return targetBitmap;
 	}
 }

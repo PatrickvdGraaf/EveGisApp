@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -31,6 +32,7 @@ import com.facebook.widget.ProfilePictureView;
 public class Login extends Activity {
 	private GraphUser user;
 	private LoginButton loginbut;
+	private Button mainmap;
 	private ProfilePictureView profilePictureView;
 	private TextView username;
 	private ProgressBar spinner;
@@ -55,6 +57,9 @@ public class Login extends Activity {
 		spinner = (ProgressBar) findViewById(R.id.spinner);
 		loginbut = (LoginButton) findViewById(R.id.login_button);
 		loginbut.setVisibility(View.GONE);
+		mainmap = (Button) findViewById(R.id.mainmap);
+		mainmap.setVisibility(View.GONE);
+		mainmap.setOnClickListener(mainmapHandler);
 		profilePictureView = (ProfilePictureView) findViewById(R.id.selection_profile_pic);
 		profilePictureView.setVisibility(View.GONE);
 		username = (TextView) findViewById(R.id.selection_user_name);
@@ -191,6 +196,7 @@ public class Login extends Activity {
 		profilePictureView.setVisibility(View.VISIBLE);
         username.setText(user.getName());
         spinner.setVisibility(View.GONE);
+        mainmap.setVisibility(View.VISIBLE);
 		Login.this.startActivity(myIntent);	
 	}
 
@@ -232,4 +238,11 @@ public class Login extends Activity {
 		super.onSaveInstanceState(outState);
 		uihelper.onSaveInstanceState(outState);
 	}
+	
+	View.OnClickListener mainmapHandler = new View.OnClickListener() {
+	    public void onClick(View v) {
+	    	Intent myIntent = new Intent(Login.this, MainMap.class);
+			Login.this.startActivity(myIntent);	
+	    }
+	};
 }

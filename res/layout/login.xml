@@ -24,6 +24,14 @@
             android:layout_marginLeft="10dp"
             android:textColor="#FFFFFF"
             android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/mainmap"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:text="to MainMap" />
         
     </LinearLayout>
 

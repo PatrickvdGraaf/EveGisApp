@@ -1,6 +1,7 @@
 package crepetete.arcgis.evemapp;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,13 +17,15 @@ import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
 import com.esri.android.map.event.OnSingleTapListener;
 import com.esri.core.geometry.Point;
 import com.esri.core.map.Graphic;
-import com.esri.core.symbol.SimpleMarkerSymbol;
+import com.esri.core.symbol.PictureMarkerSymbol;
 import com.facebook.widget.ProfilePictureView;
 
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
-import android.graphics.Color;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -30,10 +33,12 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,7 +66,7 @@ public class MainMap extends Activity implements LocationListener {
 		//Remove title bar
 	    this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.mainmap);
-
+		
 		// Solves NetworkOnMainThreadException
 		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
 				.permitAll().build();
@@ -71,6 +76,24 @@ public class MainMap extends Activity implements LocationListener {
 		mMapView = (MapView) findViewById(R.id.map);
 		profilePictureView = (ProfilePictureView) findViewById(R.id.selection_profile_pic);
 	    profilePictureView.setCropped(true);
+	    final PopupMenu popupMenu = new PopupMenu(this, profilePictureView);
+	    popupMenu.inflate(R.menu.loginmenu);
+	    profilePictureView.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                popupMenu.show();
+            }
+        });
+	    popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.logout:
+                    	Intent logout = new Intent(MainMap.this, Login.class);
+        				MainMap.this.startActivity(logout);	
+                        break;
+                }
+                return true;
+            }
+        });
 	    friendsPage = (Button) findViewById(R.id.friends);
 	    friendsPage.setOnClickListener(friendButtonHandler);
 	    activityPage = (Button) findViewById(R.id.activitymanager);
@@ -191,7 +214,13 @@ public class MainMap extends Activity implements LocationListener {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		createPoint(lat, lng, "self", user.getMyName(), user.getMyId());	
+		try {
+			createPoint(lat, lng, "self", user.getMyName(), user.getMyId());
+		} catch (MalformedURLException e1) {
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}	
 		
 		try {
 			JSONObject jsonObj = hm.getLocOthers(user, this);
@@ -232,24 +261,21 @@ public class MainMap extends Activity implements LocationListener {
 		Log.d("Latitude", "disable");
 	}
 	
-	private void createPoint(double lat, double lng, String type, String name, String id) {
+	private void createPoint(double lat, double lng, String type, String name, String id) throws MalformedURLException, IOException {
 		Point p = ToWebMercator(lng, lat);
-		SimpleMarkerSymbol marker;
 
 		Map<String, Object> attr = new HashMap<String, Object>();
 		attr.put("name", name);
 		attr.put("type", type);
 		attr.put("id", id);
-		
-		if (type.equals("self")) {
-			marker = new SimpleMarkerSymbol(Color.RED, 10,
-			SimpleMarkerSymbol.STYLE.DIAMOND);
-		} else {
-			marker = new SimpleMarkerSymbol(Color.CYAN, 10,
-			SimpleMarkerSymbol.STYLE.CIRCLE);
-		}
 
-		Graphic g = new Graphic(p, marker, attr);
+		String s = "https://graph.facebook.com/" + id + "/picture";
+		Bitmap mIcon1 = hm.getFacebookBitMap(s);
+		Drawable d = new BitmapDrawable(getResources(),mIcon1);
+		
+		PictureMarkerSymbol pms = new PictureMarkerSymbol(d);
+		Graphic g = new Graphic(p, pms, attr);
+		
 		// add the graphic to the graphics layer
 		gl.addGraphic(g);
 	}
