@@ -11,6 +11,14 @@
         android:gravity="center_horizontal"
         android:orientation="horizontal" >
 
+       <Button
+           android:id="@+id/back"
+           style="?android:attr/buttonStyleSmall"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_gravity="left"
+           android:text="Back" />
+
         <com.facebook.widget.ProfilePictureView
             android:id="@+id/selection_profile_pic"
             android:layout_width="wrap_content"

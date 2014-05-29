@@ -2,13 +2,6 @@
 <resources>
 
     <string name="app_name">EveMapp Android</string>
-    <!-- map service -->
-    <string name="basemap_url">http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer</string>
-    <!-- geocode service -->
-    <string name="geocode_url">http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer</string>
-    <!-- text for geocode label -->
-    <string name="geocode_label">Enter a USA input address: house #, street, city, state, zip</string>
-    <!-- button string -->
     <string name="button_locate">Go</string>
     <string name="sluit">Sluit</string>
     <string name="inf_dialog_image">Type of point</string>
@@ -23,12 +16,11 @@
     <string name="backend_loc_others">http://web.insidion.com/request/location_others</string>
     <string name="settings">Settings</string>
     <string name="app_id">1504770786413195</string>
-    <string name="title_activity_selection_fragment">SelectionFragment</string>
-    <string name="title_activity_main">MainActivity</string>
-    <string name="settings">Settings</string>
     <string name="title_activity_login">Login</string>
     <string name="title_activity_friends_list">FriendsList</string>
     <string name="title_activity_event_picker">EventPicker</string>
-    <string name="logout">Logout</string>
+    <string name="Logout">Logout</string>
+    <string name="back">Back</string>
+    <string name="search">Search</string>
 
 </resources>

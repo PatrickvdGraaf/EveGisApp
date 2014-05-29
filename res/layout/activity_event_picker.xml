@@ -3,18 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".EventPicker" >
-
-    <EditText
-        android:id="@+id/ETeventId"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="number" >
-    </EditText>
 
     <Button
         android:id="@+id/BeventSearch"
@@ -23,6 +12,37 @@
         android:layout_below="@+id/ETeventId"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="24dp"
-        android:text="Button" />
+        android:text="@string/search" />
+
+    <ListView
+        android:id="@+id/eventList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+   		android:paddingRight="@dimen/activity_horizontal_margin"
+        android:layout_below="@+id/BeventSearch" >
+
+    </ListView>
+
+    <EditText
+        android:id="@+id/ETeventId"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/back"
+        android:layout_below="@+id/back"
+        android:ems="10"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+    	android:paddingRight="@dimen/activity_horizontal_margin"
+        android:inputType="number" />
+
+    <Button
+        android:id="@+id/back"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:text="@string/back" />
 
 </RelativeLayout>
