@@ -57,8 +57,10 @@ public class MainMap extends Activity implements LocationListener {
 	private Button friendsPage;
 	private Button activityPage;
 	private Button myLocation;
+	private Button homeButton;
 	private TextView userNameView;
 	private ArrayList<Friend> friendsList;
+	private Envelope e;
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -101,6 +103,8 @@ public class MainMap extends Activity implements LocationListener {
 	    activityPage.setOnClickListener(eventButtonHandler);
 	    myLocation = (Button) findViewById(R.id.myLocation);
 	    myLocation.setOnClickListener(locationButtonHandler);
+	    homeButton= (Button) findViewById(R.id.home);
+	    homeButton.setOnClickListener(homeButtonHandler);
 	    
 	    userNameView = (TextView) findViewById(R.id.selection_user_name);
 		// Add dynamic layer to MapView
@@ -179,15 +183,18 @@ public class MainMap extends Activity implements LocationListener {
 			JSONObject jsonObj = hm.getEventMapInfo("1", getBaseContext());
 			JSONArray arr = jsonObj.getJSONArray("bounds");
 			for (int i = 0; i < arr.length(); i++) {
-				String xmin = arr.getJSONObject(i).getString("xmin");
-				String xmax = arr.getJSONObject(i).getString("xmax");
-				String ymin = arr.getJSONObject(i).getString("ymin");
-				String ymax = arr.getJSONObject(i).getString("ymax");
-				Envelope e = new Envelope();
-				e.setXMax(Double.parseDouble(xmax));
-				e.setYMax(Double.parseDouble(ymax));
-				e.setXMin(Double.parseDouble(xmin));
-				e.setYMin(Double.parseDouble(ymin));
+				double xmin = Double.parseDouble(arr.getJSONObject(i).getString("xmin")) ;
+				double xmax = Double.parseDouble(arr.getJSONObject(i).getString("xmax"));
+				double ymin = Double.parseDouble(arr.getJSONObject(i).getString("ymin"));
+				double ymax = Double.parseDouble(arr.getJSONObject(i).getString("ymax"));
+				Point max = ToWebMercator(xmax, ymax);
+				Point min = ToWebMercator(xmin, ymin);
+				e = new Envelope();
+				e.setXMax(max.getX());
+				e.setYMax(max.getY());
+				e.setXMin(min.getX());
+				e.setYMin(min.getY());
+				System.out.println("max" +  max.getX());
 				mMapView.setMaxExtent(e);
 			}
 		} catch (ClientProtocolException e) {
@@ -393,6 +400,14 @@ public class MainMap extends Activity implements LocationListener {
 	    		Point myPoint = ToWebMercator(location.getLongitude(), location.getLatitude());
 		    	mMapView.centerAt(myPoint, true);
 		    	mMapView.zoomToResolution(myPoint, 100);
+	    	}
+	    }
+	};
+	
+	View.OnClickListener homeButtonHandler = new View.OnClickListener() {
+	    public void onClick(View v) {
+	    	if(e != null){
+		    	mMapView.zoomToResolution(e.getCenter(), 100);
 	    	}
 	    }
 	};
