@@ -8,12 +8,14 @@ import com.facebook.widget.ProfilePictureView;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -21,6 +23,7 @@ public class FriendsList extends Activity {
 
 	private ProfilePictureView profilePictureView;
 	private TextView userNameView;
+	private Button backButton;
 	private ListView friends;
 	private List<Friend> friendsList;
 
@@ -40,10 +43,11 @@ public class FriendsList extends Activity {
 		profilePictureView.setCropped(true);
 
 		userNameView = (TextView) findViewById(R.id.selection_user_name);
+		backButton = (Button) findViewById(R.id.back);
 		
 		profilePictureView.setProfileId(getIntent().getStringExtra("userId"));
 		userNameView.setText(getIntent().getStringExtra("userName"));
-
+		backButton.setOnClickListener(backHandler);
 	}
 
 	// Adapter to put the information from the friendsList in the listView. Info
@@ -69,7 +73,6 @@ public class FriendsList extends Activity {
 			// Hier haal ik de Friend objecten uit de friendsList en stop ze per
 			// object in de listview
 			Friend f = friendsList.get(position);
-			System.out.println("name: " + f.getName());
 			if (f != null) {
 				TextView name = (TextView) view.findViewById(R.id.name);
 				ProfilePictureView picture = (ProfilePictureView) view.findViewById(R.id.friend_profile_pic);
@@ -83,6 +86,12 @@ public class FriendsList extends Activity {
 			return view;
 		}
 	}
+	
+	View.OnClickListener backHandler = new View.OnClickListener() {
+	    public void onClick(View v) {
+			FriendsList.this.startActivity(new Intent(FriendsList.this, MainMap.class));	
+	    }
+};
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
