@@ -15,6 +15,7 @@ import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.MapView;
 import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
 import com.esri.android.map.event.OnSingleTapListener;
+import com.esri.core.geometry.Envelope;
 import com.esri.core.geometry.Point;
 import com.esri.core.map.Graphic;
 import com.esri.core.symbol.PictureMarkerSymbol;
@@ -173,6 +174,30 @@ public class MainMap extends Activity implements LocationListener {
 				e.printStackTrace();
 			}	
 		}
+		
+		try {
+			JSONObject jsonObj = hm.getEventMapInfo("1", getBaseContext());
+			JSONArray arr = jsonObj.getJSONArray("bounds");
+			for (int i = 0; i < arr.length(); i++) {
+				String xmin = arr.getJSONObject(i).getString("xmin");
+				String xmax = arr.getJSONObject(i).getString("xmax");
+				String ymin = arr.getJSONObject(i).getString("ymin");
+				String ymax = arr.getJSONObject(i).getString("ymax");
+				Envelope e = new Envelope();
+				e.setXMax(Double.parseDouble(xmax));
+				e.setYMax(Double.parseDouble(ymax));
+				e.setXMin(Double.parseDouble(xmin));
+				e.setYMin(Double.parseDouble(ymin));
+				mMapView.setMaxExtent(e);
+			}
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
 		profilePictureView.setProfileId(user.getMyId());
 		userNameView.setText(user.getMyName());
 	}

@@ -1,10 +1,12 @@
 package crepetete.arcgis.evemapp;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.http.client.ClientProtocolException;
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -39,10 +41,11 @@ public class EventPicker extends Activity {
 		setContentView(R.layout.activity_event_picker);
 		events = (ListView) findViewById(R.id.eventList);
 		eventIdET = (EditText) findViewById(R.id.ETeventId);
-		
 		eventSearchB = (Button) findViewById(R.id.BeventSearch);
-		eventSearchB.setOnClickListener(eventSearchButtonHandler);
 		back = (Button) findViewById(R.id.back);
+		eventsList = new ArrayList<Event>();
+		
+		eventSearchB.setOnClickListener(eventSearchButtonHandler);
 		back.setOnClickListener(backButtonHandler);
 		
 		hm = new HttpManager();
@@ -53,7 +56,31 @@ public class EventPicker extends Activity {
 	    	if(eventIdET.getText() != null){
 	    		String eventId = String.valueOf(eventIdET.getText());
 	    		try {
-					hm.getEvent(eventId, getBaseContext());
+					JSONObject jsonObj = hm.getEvent(eventId, getBaseContext());
+					JSONArray arr = jsonObj.getJSONArray("events");
+					for (int i = 0; i < arr.length(); i++) {
+						String name = arr.getJSONObject(i).getString("name");
+						String description = arr.getJSONObject(i).getString("description");
+						JSONObject startTimeArr =  (JSONObject) arr.getJSONObject(i).get("start_date");
+						String start_date = startTimeArr.getString("date");
+						String start_date_timezone_type  = startTimeArr.getString("timezone_type");
+						String start_date_timezone  = startTimeArr.getString("timezone");
+						JSONObject endTimeArr =  (JSONObject) arr.getJSONObject(i).get("end_date");
+						String end_date = endTimeArr.getString("date");
+						String end_date_timezone_type  = startTimeArr.getString("timezone_type");
+						String end_date_timezone  = startTimeArr.getString("timezone");
+						
+						Event e = new Event();
+						e.setName(name);
+						e.setDescription(description);
+						e.setStart_date(start_date);
+						e.setStart_date_timezone_type(start_date_timezone_type);
+						e.setStart_date_timezone(start_date_timezone);
+						e.setEnd_date(end_date);
+						e.setEnd_date_timezone_type(end_date_timezone_type);
+						e.setEnd_date_timezone(end_date_timezone);
+						eventsList.add(e);
+					}
 					if(eventsList.size() != 0){
 						events.setAdapter(new EventListAdapter(getBaseContext(), eventsList));
 					}
@@ -94,13 +121,25 @@ public class EventPicker extends Activity {
 			Event e = eventsList.get(position);
 			if (e != null) {
 				TextView name = (TextView) view.findViewById(R.id.eventName);
+				TextView date = (TextView) view.findViewById(R.id.eventDate);
+				TextView description = (TextView) view.findViewById(R.id.eventDescription);
 				ImageView picture = (ImageView) view.findViewById(R.id.eventLogo);
 				if (name != null) {
 					name.setText(e.getName());
 				}
-				if (picture != null) {
+				if (picture != null && e.getImage()!= null) {
 					picture.setImageDrawable(e.getImage());
+				}else{
+					picture.setImageDrawable(getResources().getDrawable( R.drawable.festival ));
 				}
+				if (date != null) {
+					date.setText(e.getStart_date() + " - " + e.getEnd_date());
+				}
+				
+				if (description != null) {
+					description.setText(e.getDescription());
+				}
+				
 			}
 			return view;
 		}

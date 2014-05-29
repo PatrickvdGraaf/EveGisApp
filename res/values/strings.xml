@@ -14,6 +14,8 @@
     <string name="backend_location_self">http://web.insidion.com/request/location_self</string>
     <string name="backend_register">http://web.insidion.com/request/register</string>
     <string name="backend_loc_others">http://web.insidion.com/request/location_others</string>
+    <string name="backend_events">http://web.insidion.com/request/event_list</string>
+    <string name="backend_event_map_info">http://web.insidion.com/request/event_data/1</string>
     <string name="settings">Settings</string>
     <string name="app_id">1504770786413195</string>
     <string name="title_activity_login">Login</string>

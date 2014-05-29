@@ -119,6 +119,7 @@ public class HttpManager {
 	public JSONObject getLocOthers(User user, Context c) throws ClientProtocolException, IOException, JSONException {
 		postParams.clear();
 		postParams.put("id", user.getMyId());
+		postParams.put("event_id", "1");
 		url = new URL(c.getString(R.string.backend_loc_others));
 		return postWithJSONResponse(url);
 	}
@@ -126,7 +127,14 @@ public class HttpManager {
 	public JSONObject getEvent(String eventId, Context c) throws ClientProtocolException, IOException, JSONException {
 		postParams.clear();
 		postParams.put("id", eventId);
-		url = new URL(c.getString(R.string.backend_loc_others));
+		url = new URL(c.getString(R.string.backend_events));
+		return postWithJSONResponse(url);
+	}
+	
+	public JSONObject getEventMapInfo(String eventId, Context c) throws ClientProtocolException, IOException, JSONException {
+		postParams.clear();
+		postParams.put("id", eventId);
+		url = new URL(c.getString(R.string.backend_event_map_info));
 		return postWithJSONResponse(url);
 	}
 	
@@ -156,6 +164,7 @@ public class HttpManager {
 		postParams.put("id", user.getMyId());
 		postParams.put("lat", Double.toString(user.getMyLat()));
 		postParams.put("lng", Double.toString(user.getMyLng()));
+		postParams.put("event_id", "1");
 		url = new URL(c.getString(R.string.backend_location_self));
 		post(url);
 	}
