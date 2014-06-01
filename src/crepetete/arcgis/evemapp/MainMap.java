@@ -358,15 +358,9 @@ public class MainMap extends Activity implements LocationListener {
 		String s = "https://graph.facebook.com/" + id + "/picture?width=100&height=100";
 		Bitmap mIcon1 = hm.getFacebookBitMap(s);
 		Drawable d = new BitmapDrawable(getResources(),mIcon1);
-		Drawable bubble = getResources().getDrawable( R.drawable.bubble );
-		Bitmap bitmap = ((BitmapDrawable) bubble).getBitmap();
 		// Scale it to 50 x 50
-		Drawable bubbleFinished = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 50, 50, false));
-		bubbleFinished.setAlpha(20);
 		PictureMarkerSymbol pms = new PictureMarkerSymbol(d);
-		PictureMarkerSymbol bubblePms = new PictureMarkerSymbol(bubbleFinished);
 		Graphic g = new Graphic(p, pms, attr);
-		Graphic bg = new Graphic(p, bubblePms, attr);
 		// add the graphic to the graphics layer
 		System.out.println("create graphic");
 		gl.addGraphic(g);
