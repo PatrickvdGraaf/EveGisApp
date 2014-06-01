@@ -21,8 +21,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import crepetete.arcgis.evemapp.Event;
 
 public class EventPicker extends Activity {
@@ -35,7 +39,7 @@ public class EventPicker extends Activity {
 	private HttpManager hm;
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_event_picker);
@@ -61,6 +65,7 @@ public class EventPicker extends Activity {
 					for (int i = 0; i < arr.length(); i++) {
 						String name = arr.getJSONObject(i).getString("name");
 						String description = arr.getJSONObject(i).getString("description");
+						String event_image_url = arr.getJSONObject(i).getString("image");
 						JSONObject startTimeArr =  (JSONObject) arr.getJSONObject(i).get("start_date");
 						String start_date = startTimeArr.getString("date");
 						String start_date_timezone_type  = startTimeArr.getString("timezone_type");
@@ -70,10 +75,12 @@ public class EventPicker extends Activity {
 						String end_date_timezone_type  = startTimeArr.getString("timezone_type");
 						String end_date_timezone  = startTimeArr.getString("timezone");
 						
+						
 						Event e = new Event();
 						e.setName(name);
 						e.setDescription(description);
 						e.setStart_date(start_date);
+						e.setImage(hm.LoadImageFromWebOperations("http://web.insidion.com" +event_image_url));
 						e.setStart_date_timezone_type(start_date_timezone_type);
 						e.setStart_date_timezone(start_date_timezone);
 						e.setEnd_date(end_date);
@@ -97,7 +104,7 @@ public class EventPicker extends Activity {
 	
 	View.OnClickListener backButtonHandler = new View.OnClickListener() {
 	    public void onClick(View v) {
-	    	EventPicker.this.startActivity(new Intent(EventPicker.this, MainMap.class));
+	    	finish();
 	    }
 	};
 	
@@ -128,12 +135,38 @@ public class EventPicker extends Activity {
 					name.setText(e.getName());
 				}
 				if (picture != null && e.getImage()!= null) {
-					picture.setImageDrawable(e.getImage());
+					Drawable d = e.getImage();
+					Bitmap bitmap = drawableToBitmap(d);
+					int redColors = 0;
+				    int greenColors = 0;
+				    int blueColors = 0;
+				    int pixelCount = 0;
+
+				    for (int y = 0; y < bitmap.getHeight(); y++)
+				    {
+				        for (int x = 0; x < bitmap.getWidth(); x++)
+				        {
+				            int c = bitmap.getPixel(x, y);
+				            pixelCount++;
+				            redColors += Color.red(c);
+				            greenColors += Color.green(c);
+				            blueColors += Color.blue(c);
+				        }
+				    }
+				    // calculate average of bitmap r,g,b values
+				    int red = (redColors/pixelCount);
+				    int green = (greenColors/pixelCount);
+				    int blue = (blueColors/pixelCount);
+				      
+				    
+					picture.setImageDrawable(d);
+					
+					if (date != null) {
+						date.setText(e.getStart_date() + " - " + e.getEnd_date());
+						date.setTextColor(Color.rgb(red, green, blue));
+					}
 				}else{
 					picture.setImageDrawable(getResources().getDrawable( R.drawable.festival ));
-				}
-				if (date != null) {
-					date.setText(e.getStart_date() + " - " + e.getEnd_date());
 				}
 				
 				if (description != null) {
@@ -143,5 +176,14 @@ public class EventPicker extends Activity {
 			}
 			return view;
 		}
+	}
+	
+	public Bitmap drawableToBitmap (Drawable drawable) {
+	    Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Config.ARGB_8888);
+	    Canvas canvas = new Canvas(bitmap); 
+	    drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+	    drawable.draw(canvas);
+
+	    return bitmap;
 	}
 }

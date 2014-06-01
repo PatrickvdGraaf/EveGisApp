@@ -167,7 +167,6 @@ public class Login extends Activity {
 		            
 		            if(json_obj.has("name")){
 		            	name   = json_obj.getString( "name" );
-		            	System.out.println(name	);
 		            }
 		            
 		            if(json_obj.has("birthday")){

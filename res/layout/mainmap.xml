@@ -61,11 +61,9 @@
 	    style="?android:attr/buttonStyleSmall"
 	    android:layout_width="40dp"
 	    android:layout_height="40dp"
-	    android:layout_alignParentBottom="true"
 	    android:layout_alignParentRight="true"
-	    android:layout_marginBottom="10dp"
-	    android:layout_marginRight="10dp"
-	    android:layout_above="@+id/myLocation"
+	   	android:layout_alignParentBottom="true"
+	    android:layout_marginBottom="50dp"
 	    android:background="@drawable/home" />
 
 	<Button
@@ -73,10 +71,8 @@
 	    style="?android:attr/buttonStyleSmall"
 	    android:layout_width="40dp"
 	    android:layout_height="40dp"
-	    android:layout_alignParentBottom="true"
 	    android:layout_alignParentRight="true"
-	    android:layout_marginBottom="10dp"
-	    android:layout_marginRight="10dp"
+	   	android:layout_alignParentBottom="true"
 	    android:background="@drawable/scope" />
 
 	</RelativeLayout>

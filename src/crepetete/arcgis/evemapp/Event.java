@@ -1,6 +1,9 @@
 package crepetete.arcgis.evemapp;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
 import android.graphics.drawable.Drawable;
 import android.widget.BaseAdapter;
 
@@ -21,7 +24,21 @@ public class Event implements Serializable{
 	private String end_date_timezone;
 	private Drawable image;
 	private BaseAdapter adapter;
+	private List<FestivalObject> objects;
 	
+
+	public Event(){
+		objects = new ArrayList<FestivalObject>();
+	}
+	
+	public List<FestivalObject> getObjects() {
+		return objects;
+	}
+
+	public void setObjects(List<FestivalObject> objects) {
+		this.objects = objects;
+	}
+
 	public String getStart_date_timezone_type() {
 		return start_date_timezone_type;
 	}

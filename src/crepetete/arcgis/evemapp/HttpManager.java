@@ -52,7 +52,6 @@ public class HttpManager {
 		if (postParams != null && postParams.size() > 0) {
 
 			httpConn.setDoOutput(true); // true indicates POST request
-			System.out.println("postparams " + postParams);
 			// creates the params string, encode them using URLEncoder
 			Iterator<String> paramIterator = (postParams).keySet().iterator();
 			while (paramIterator.hasNext()) {
@@ -62,7 +61,6 @@ public class HttpManager {
 				requestParams.append("=").append(URLEncoder.encode(value, "UTF-8"));
 				requestParams.append("&");
 			}
-			System.out.println("requestParams " + requestParams.toString());
 			// sends POST data
 			OutputStreamWriter writer = new OutputStreamWriter(
 					httpConn.getOutputStream());
@@ -70,11 +68,10 @@ public class HttpManager {
 			writer.flush();
 		}
 		response = readMultipleLinesRespone();
-		System.out.println("response " + response[0]);
 		return httpConn;
 	}
 	
-	public JSONObject postWithJSONResponse(URL url) throws ClientProtocolException, IOException, JSONException {
+	public JSONObject postWithJSONResponse(URL url, String source) throws ClientProtocolException, IOException, JSONException {
 		httpConn = (HttpURLConnection) url.openConnection();
 		httpConn.setUseCaches(false);
 
@@ -93,7 +90,6 @@ public class HttpManager {
 				requestParams.append("=").append(URLEncoder.encode(value, "UTF-8"));
 				requestParams.append("&");
 			}
-			System.out.println("requestParams " + requestParams.toString());
 			// sends POST data
 			OutputStreamWriter writer = new OutputStreamWriter(
 					httpConn.getOutputStream());
@@ -101,8 +97,11 @@ public class HttpManager {
 			writer.flush();
 		}
 		response = readMultipleLinesRespone();
-		JSONObject jsonObj = new JSONObject(response[0]);
-		
+		System.out.println(source + ": " + response[0]);
+		JSONObject jsonObj = null;
+		if(!response[0].contains("<br />")){
+			jsonObj = new JSONObject(response[0]);
+		}
 		return jsonObj;
 	}
 	
@@ -121,27 +120,27 @@ public class HttpManager {
 		postParams.put("id", user.getMyId());
 		postParams.put("event_id", "1");
 		url = new URL(c.getString(R.string.backend_loc_others));
-		return postWithJSONResponse(url);
+		return postWithJSONResponse(url, "getLocOthers");
 	}
 	
 	public JSONObject getEvent(String eventId, Context c) throws ClientProtocolException, IOException, JSONException {
 		postParams.clear();
 		postParams.put("id", eventId);
 		url = new URL(c.getString(R.string.backend_events));
-		return postWithJSONResponse(url);
+		return postWithJSONResponse(url, "getEvent");
 	}
 	
 	public JSONObject getEventMapInfo(String eventId, Context c) throws ClientProtocolException, IOException, JSONException {
 		postParams.clear();
 		postParams.put("id", eventId);
 		url = new URL(c.getString(R.string.backend_event_map_info));
-		return postWithJSONResponse(url);
+		return postWithJSONResponse(url, "getEventMapInfo");
 	}
 	
 	public Drawable LoadImageFromWebOperations(String url) {
 	    try {
 	        InputStream is = (InputStream) new URL(url).getContent();
-	        Drawable d = Drawable.createFromStream(is, "src name");
+	        Drawable d = Drawable.createFromStream(is, "info");
 	        return d;
 	    } catch (Exception e) {
 	        return null;

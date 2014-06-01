@@ -8,7 +8,6 @@ import com.facebook.widget.ProfilePictureView;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
@@ -89,7 +88,7 @@ public class FriendsList extends Activity {
 	
 	View.OnClickListener backHandler = new View.OnClickListener() {
 	    public void onClick(View v) {
-			FriendsList.this.startActivity(new Intent(FriendsList.this, MainMap.class));	
+	    	finish();
 	    }
 };
 
