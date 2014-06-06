@@ -1,12 +1,14 @@
 package crepetete.arcgis.evemapp;
 
+import android.graphics.drawable.Drawable;
+
 public class FestivalObject {
 	
 	private String obj_id;
 	private String obj_lat;
 	private String obj_lng;
 	private String obj_type;
-	private String obj_image_url;
+	private Drawable obj_image;
 	private String obj_width;
 	private String obj_height;
 	private String obj_angle;
@@ -35,11 +37,12 @@ public class FestivalObject {
 	public void setObj_type(String obj_type) {
 		this.obj_type = obj_type;
 	}
-	public String getObj_image_url() {
-		return obj_image_url;
+	public Drawable getObj_image() {
+		return obj_image;
 	}
 	public void setObj_image_url(String obj_image_url) {
-		this.obj_image_url = obj_image_url;
+		HttpManager hm = new HttpManager();
+		this.obj_image = hm.LoadImageFromWebOperations(obj_image_url);;
 	}
 	public String getObj_width() {
 		return obj_width;

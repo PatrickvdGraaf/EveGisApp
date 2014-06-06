@@ -97,7 +97,6 @@ public class HttpManager {
 			writer.flush();
 		}
 		response = readMultipleLinesRespone();
-		System.out.println(source + ": " + response[0]);
 		JSONObject jsonObj = null;
 		if(!response[0].contains("<br />")){
 			jsonObj = new JSONObject(response[0]);
