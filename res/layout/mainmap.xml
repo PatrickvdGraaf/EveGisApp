@@ -49,33 +49,12 @@
 	    android:layout_width="match_parent"
 	    android:layout_height="match_parent" >
 
-<!-- MapView layout and initial extent -->
-	<Button
-	    android:id="@+id/zoomout"
-	    style="?android:attr/buttonStyleSmall"
-	    android:layout_width="40dp"
-	    android:layout_height="40dp"
-	    android:layout_alignParentRight="true"
-	   	android:layout_alignParentBottom="true"
-	    android:layout_marginBottom="100dp"
-	    android:background="@drawable/minus" />
-
-	<Button
-	    android:id="@+id/zoomin"
-	    style="?android:attr/buttonStyleSmall"
-	    android:layout_width="40dp"
-	    android:layout_height="40dp"
-	    android:layout_alignParentRight="true"
-	   	android:layout_alignParentBottom="true"
-	   	android:layout_marginBottom="150dp"
-	    android:background="@drawable/pluszoom" />
-	
+<!-- MapView layout and initial extent -->	
 	<com.esri.android.map.MapView
 	android:id="@+id/map"
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent"
-	mapoptions.ZoomLevel="13">
-	</com.esri.android.map.MapView>
+	mapoptions.ZoomLevel="13" />
 	
 	<Button
 	    android:id="@+id/home"
@@ -95,6 +74,26 @@
 	    android:layout_alignParentRight="true"
 	   	android:layout_alignParentBottom="true"
 	    android:background="@drawable/scope" />
+	
+	<Button
+	    android:id="@+id/zoomout"
+	    style="?android:attr/buttonStyleSmall"
+	    android:layout_width="40dp"
+	    android:layout_height="40dp"
+	    android:layout_alignParentRight="true"
+	   	android:layout_alignParentBottom="true"
+	    android:layout_marginBottom="100dp"
+	    android:background="@drawable/minus" />
+
+	<Button
+	    android:id="@+id/zoomin"
+	    style="?android:attr/buttonStyleSmall"
+	    android:layout_width="40dp"
+	    android:layout_height="40dp"
+	    android:layout_alignParentRight="true"
+	   	android:layout_alignParentBottom="true"
+	   	android:layout_marginBottom="150dp"
+	    android:background="@drawable/pluszoom" />
 
 	</RelativeLayout>
 </LinearLayout>

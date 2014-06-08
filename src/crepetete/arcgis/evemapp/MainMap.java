@@ -64,6 +64,8 @@ public class MainMap extends Activity implements LocationListener {
 	private Button homeButton;
 	private Button zoomIn;
 	private Button zoomOut;
+	private double startRes;
+	private double maxRes = 0.104612722585168153;
 	private TextView userNameView;
 	private ArrayList<Friend> friendsList;
 	// Deze moet gekoppeld worden aan een event
@@ -86,7 +88,7 @@ public class MainMap extends Activity implements LocationListener {
 		// Retrieve the map and initial extent from XML layout
 		mMapView = (MapView) findViewById(R.id.map);
 		mMapOptions = new MapOptions(MapType.STREETS);
-		mMapOptions.setZoom(19);
+//		mMapOptions.setZoom(19);
 		mMapView.setMapOptions(mMapOptions);
 		mMapOptions.setZoom(19);
 		profilePictureView = (ProfilePictureView) findViewById(R.id.selection_profile_pic);
@@ -283,7 +285,6 @@ public class MainMap extends Activity implements LocationListener {
 			attr.put("type", type);
 			attr.put("id", id);
 			Bitmap bitmap = ((BitmapDrawable) d).getBitmap();
-			
 			d = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, width, height, true));
 			PictureMarkerSymbol pms = new PictureMarkerSymbol(d);
 			pms.setAngle(angle);
@@ -402,7 +403,7 @@ public class MainMap extends Activity implements LocationListener {
 	View.OnClickListener homeButtonHandler = new View.OnClickListener() {
 		public void onClick(View v) {
 			if (e != null) {
-				mMapView.zoomToResolution(e.getCenter(), 0.298582141647817);
+				mMapView.zoomToResolution(e.getCenter(), 0.597164283559817);
 			}
 		}
 	};
@@ -410,12 +411,60 @@ public class MainMap extends Activity implements LocationListener {
 	View.OnClickListener zoomInButtonHandler = new View.OnClickListener() {
 		public void onClick(View v) {
 			mMapView.zoomin(true);
+			int[] grs = gl.getGraphicIDs();
+			for(int i = 0; i<grs.length;i++){
+				Graphic g = gl.getGraphic(grs[i]);
+				if(g.getAttributeValue("type")!="self" || g.getAttributeValue("type")!="friend"){
+					gl.removeGraphic(grs[i]);
+				}
+			}
+			for (int i = 0; i < objects.size(); i++) {
+				FestivalObject fo = objects.get(i);
+					double lat = Double.parseDouble(fo.getObj_lat());
+					double lng = Double.parseDouble(fo.getObj_lng());
+					String type = fo.getObj_type();
+					String id = fo.getObj_id();
+					int width = (int) ((mMapView.getResolution()*Integer.parseInt(fo.getObj_width()))/maxRes);
+					int height = (int) ((mMapView.getResolution()*Integer.parseInt(fo.getObj_height()))/maxRes);
+					int angle = Integer.parseInt(fo.getObj_angle());
+					try {
+						createEventObjectPoint(lat, lng, fo.getObj_image(), type, id, width, height, angle);
+					} catch (MalformedURLException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					} 
+			}
 		}
 	};
 	
 	View.OnClickListener zoomOutButtonHandler = new View.OnClickListener() {
-		public void onClick(View v) {
+		public void onClick(View v) {	
 			mMapView.zoomout(true);
+			int[] grs = gl.getGraphicIDs();
+			for(int i = 0; i<grs.length;i++){
+				Graphic g = gl.getGraphic(grs[i]);
+				if(g.getAttributeValue("type")!="self" || g.getAttributeValue("type")!="friend"){
+					gl.removeGraphic(grs[i]);
+				}
+			}
+			for (int i = 0; i < objects.size(); i++) {
+				FestivalObject fo = objects.get(i);
+					double lat = Double.parseDouble(fo.getObj_lat());
+					double lng = Double.parseDouble(fo.getObj_lng());
+					String type = fo.getObj_type();
+					String id = fo.getObj_id();
+					int width = (int) (mMapView.getResolution()*Integer.parseInt(fo.getObj_width())/startRes);
+					int height = (int) (mMapView.getResolution()*Integer.parseInt(fo.getObj_height())/startRes);
+					int angle =Integer.parseInt(fo.getObj_angle());
+					try {
+						createEventObjectPoint(lat, lng, fo.getObj_image(), type, id, width, height, angle);
+					} catch (MalformedURLException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					} 
+			}
 		}
 	};
 	
@@ -438,10 +487,10 @@ public class MainMap extends Activity implements LocationListener {
     				Point max = ToWebMercator(xmax, ymax);
     				Point min = ToWebMercator(xmin, ymin);
     				e = new Envelope();
-    				mMapView.zoomToResolution(e.getCenter(), 0.298582141647817);
     				e.setCoords(min.getX(), min.getY(), max.getX(), max.getY());
     				mMapView.setMaxExtent(e);
-//    				mMapOptions.setCenter(500318, 6778878);
+    				startRes = 0.597164283559817;
+    				mMapView.zoomToResolution(e.getCenter(), startRes);
     				
     			}
 
@@ -476,12 +525,12 @@ public class MainMap extends Activity implements LocationListener {
     					double lng = Double.parseDouble(fo.getObj_lng());
     					String type = fo.getObj_type();
     					String id = fo.getObj_id();
-    					int width = Integer.parseInt(fo.getObj_width());
-    					int height = Integer.parseInt(fo.getObj_height());
+    					startRes = 0.7188088598324813; 
+    					int width = (int) (maxRes*Integer.parseInt(fo.getObj_width())/startRes);
+    					int height = (int) (maxRes*Integer.parseInt(fo.getObj_height())/startRes);
     					int angle = Integer.parseInt(fo.getObj_angle());
     					createEventObjectPoint(lat, lng, fo.getObj_image(), type, id, width, height, angle);
-    			}
-    			
+    			}		
     		} catch (ClientProtocolException e) {
     			e.printStackTrace();
     		} catch (IOException e) {

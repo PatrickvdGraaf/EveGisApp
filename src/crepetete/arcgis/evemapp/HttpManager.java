@@ -100,6 +100,8 @@ public class HttpManager {
 		JSONObject jsonObj = null;
 		if(!response[0].contains("<br />")){
 			jsonObj = new JSONObject(response[0]);
+		}else{
+			System.out.println("null");
 		}
 		return jsonObj;
 	}
