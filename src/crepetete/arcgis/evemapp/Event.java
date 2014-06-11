@@ -15,6 +15,7 @@ public class Event implements Serializable{
 	private static final long serialVersionUID = 1L;
 	
 	private String name;
+	private String id;
 	private String description;
 	private String start_date;
 	private String start_date_timezone_type;
@@ -31,6 +32,14 @@ public class Event implements Serializable{
 		objects = new ArrayList<FestivalObject>();
 	}
 	
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
 	public List<FestivalObject> getObjects() {
 		return objects;
 	}

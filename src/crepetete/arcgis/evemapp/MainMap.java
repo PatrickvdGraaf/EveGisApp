@@ -137,13 +137,6 @@ public class MainMap extends Activity implements LocationListener {
 		gl = new GraphicsLayer(GraphicsLayer.RenderingMode.STATIC);
 		createMapViewTapList();
 		mMapView.addLayer(gl);
-//
-//		mMapView.setOnTouchListener(new OnTouchListener(){
-//				public boolean onTouch(View v, MotionEvent event) {
-//				mMapView.setOnPanListener(null);
-//				return false;
-//			}
-//		});
 		
 		this.locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 		Criteria criteria = new Criteria();
@@ -178,8 +171,20 @@ public class MainMap extends Activity implements LocationListener {
 		if(location!=null){
 			onLocationChanged(location);
 		}
-		
-		new loadEventObjects().execute("");
+	}
+	
+	@Override 
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {     
+	  super.onActivityResult(requestCode, resultCode, data); 
+	  switch(requestCode) { 
+	    case (1) : { 
+	      if (resultCode == Activity.RESULT_OK) { 
+	      String eventId = data.getStringExtra("eventId");
+	      new loadEvent(eventId).execute("");
+	      } 
+	      break; 
+	    } 
+	  } 
 	}
 
 	/* Request updates at startup */
@@ -355,7 +360,7 @@ public class MainMap extends Activity implements LocationListener {
 			myIntent.putExtra("userId", user.getMyId());
 			myIntent.putExtra("userName", user.getMyName());
 			myIntent.putExtra("friendList", friendsList);
-			MainMap.this.startActivity(myIntent);
+			startActivityForResult(myIntent, 1);
 		}
 	};
 
@@ -374,7 +379,8 @@ public class MainMap extends Activity implements LocationListener {
 	View.OnClickListener homeButtonHandler = new View.OnClickListener() {
 		public void onClick(View v) {
 			if (e != null) {
-				mMapView.zoomToResolution(e.getCenter(), 0.298582141647617);
+				mMapView.zoomToResolution(e.getCenter(), 3791.436438333892);
+				level = 18;
 			}
 		}
 	};
@@ -516,12 +522,18 @@ public class MainMap extends Activity implements LocationListener {
         }
 	}
 	
-	public class loadEventObjects extends AsyncTask<String, Void, String> {
+	public class loadEvent extends AsyncTask<String, Void, String> {
+		
+		private String eventId;
+		
+		public loadEvent(String eventId){
+			this.eventId=eventId;
+		}
         @Override
         protected String doInBackground(String... params) {
         	objects = new ArrayList<FestivalObject>();
     		try {
-    			JSONObject jsonObj = hm.getEventMapInfo("1", getBaseContext());
+    			JSONObject jsonObj = hm.getEventMapInfo(eventId, getBaseContext());
     			JSONArray arr = jsonObj.getJSONArray("bounds");
     			for (int i = 0; i < arr.length(); i++) {
     				double xmin = Double.parseDouble(arr.getJSONObject(i)
