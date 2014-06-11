@@ -2,12 +2,20 @@ package crepetete.arcgis.evemapp;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.apache.http.client.ClientProtocolException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.esri.core.geometry.Point;
+import com.esri.core.map.Graphic;
+import com.esri.core.symbol.PictureMarkerSymbol;
+
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,6 +33,7 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import crepetete.arcgis.evemapp.Event;
 
@@ -162,8 +171,7 @@ public class EventPicker extends Activity {
 				}
 				
 				if (date != null) {
-					Thread thread = getInfoThread(e);
-				    thread.start();
+					date.setText(e.getStart_date() + " - " + e.getEnd_date());
 				}
 			}
 			return view;
@@ -218,6 +226,7 @@ public class EventPicker extends Activity {
 					}
 		        };
 		    };
+		    
 		}
 	}
 }

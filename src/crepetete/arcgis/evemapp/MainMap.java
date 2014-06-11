@@ -12,6 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.esri.android.map.GraphicsLayer;
+import com.esri.android.map.MapOnTouchListener;
 import com.esri.android.map.MapView;
 import com.esri.android.map.ags.ArcGISTiledMapServiceLayer;
 import com.esri.android.map.event.OnSingleTapListener;
@@ -40,7 +41,6 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.PopupMenu;
@@ -56,16 +56,10 @@ public class MainMap extends Activity implements LocationListener {
 	private LocationManager locationManager;
 	private Location location;
 	private ProfilePictureView profilePictureView;
-	private Button friendsPage;
-	private Button activityPage;
-	private Button myLocation;
-	private Button homeButton;
-	private Button zoomIn;
-	private Button zoomOut;
+	private Button friendsPage, activityPage, myLocation, homeButton, zoomIn, zoomOut;
 	private int level = 19;
 	private TextView userNameView;
 	private ArrayList<Friend> friendsList;
-	// Deze moet gekoppeld worden aan een event
 	private List<FestivalObject> objects;
 	private Envelope e;
 
@@ -106,6 +100,24 @@ public class MainMap extends Activity implements LocationListener {
 						return true;
 					}
 				});
+		mMapView.setOnTouchListener(new MapOnTouchListener(this, mMapView){
+			@Override
+			public boolean onPinchPointersDown (MotionEvent event){
+				return true;
+			}
+			@Override
+			public boolean onPinchPointersUp (MotionEvent event){
+				return true;
+			}
+			@Override
+			public boolean onPinchPointersMove (MotionEvent event){
+				return true;
+			}
+			@Override
+			public boolean onDoubleTap (MotionEvent point){
+				return true;
+			}
+		});
 		friendsPage = (Button) findViewById(R.id.friends);
 		friendsPage.setOnClickListener(friendButtonHandler);
 		activityPage = (Button) findViewById(R.id.activitymanager);
@@ -125,13 +137,13 @@ public class MainMap extends Activity implements LocationListener {
 		gl = new GraphicsLayer(GraphicsLayer.RenderingMode.STATIC);
 		createMapViewTapList();
 		mMapView.addLayer(gl);
-
-		mMapView.setOnTouchListener(new OnTouchListener(){
-				public boolean onTouch(View v, MotionEvent event) {
-				mMapView.setOnPanListener(null);
-				return false;
-			}
-		});
+//
+//		mMapView.setOnTouchListener(new OnTouchListener(){
+//				public boolean onTouch(View v, MotionEvent event) {
+//				mMapView.setOnPanListener(null);
+//				return false;
+//			}
+//		});
 		
 		this.locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 		Criteria criteria = new Criteria();
