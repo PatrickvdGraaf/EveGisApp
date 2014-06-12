@@ -188,12 +188,11 @@ public class MainMap extends Activity implements LocationListener {
 	    } 
 	    case (2) : { 
 		      if (resultCode == Activity.RESULT_OK) { 
-		      ArrayList<String> friendsToDisplay = data.getStringArrayListExtra("friendsId");
-		      System.out.println(friendsToDisplay.toString());
-		      selectedFriendsList = friendsToDisplay;
-		      if(location!=null){
-		    	  onLocationChanged(location);
-		      }
+		      selectedFriendsList = data.getStringArrayListExtra("friendsToDisplay");
+		      System.out.println(selectedFriendsList.toString());
+			      if(location!=null){
+			    	  onLocationChanged(location);
+			      }
 		      } 
 		      break; 
 		    }
@@ -365,7 +364,9 @@ public class MainMap extends Activity implements LocationListener {
 			Intent myIntent = new Intent(MainMap.this, FriendsList.class);
 			myIntent.putExtra("userId", user.getMyId());
 			myIntent.putExtra("userName", user.getMyName());
-			myIntent.putExtra("friendList", friendsList);
+			myIntent.putExtra("friendsList", friendsList);
+			System.out.println(friendsList.toString());
+			myIntent.putExtra("selectedFriendsList", selectedFriendsList);
 			startActivityForResult(myIntent, 2);
 		}
 	};

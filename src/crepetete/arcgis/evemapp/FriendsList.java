@@ -13,7 +13,6 @@ import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -33,6 +32,7 @@ public class FriendsList extends Activity {
 	private Button submit;
 	private ListView friends;
 	private List<Friend> friendsList;
+	private ArrayList<String> friendsToDisplay;
 	private ListAdapter adapter;
 
 	@SuppressWarnings("unchecked")
@@ -45,7 +45,9 @@ public class FriendsList extends Activity {
 		friends = (ListView) findViewById(R.id.friends_list);
 		friendsList = (ArrayList<Friend>) getIntent().getSerializableExtra("friendList");
 		friends.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+		friendsList = (ArrayList<Friend>) getIntent().getSerializableExtra("friendsList");
 		adapter = new FriendListAdapter(this, friendsList);
+		friendsToDisplay = getIntent().getStringArrayListExtra("selectedFriendsList");
 		friends.setAdapter(adapter);
 
 		profilePictureView = (ProfilePictureView) findViewById(R.id.selection_profile_pic);
@@ -60,14 +62,16 @@ public class FriendsList extends Activity {
 		backButton.setOnClickListener(backHandler);
 		submit.setOnClickListener(submitHandler);	
 		friends.setOnItemClickListener(new OnItemClickListener() {
-
-			public void onItemClick(AdapterView<?> arg0, View v, int arg2,
-					long arg3) {
+			public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3) {
 				CheckBox cb = (CheckBox) v.findViewById(R.id.checkBox1);
-				if(cb.isChecked()){
-					cb.setChecked(false);
-				}else{
+				System.out.println("clicked, cb is " + cb.isChecked());
+				if (!cb.isChecked()){
 					cb.setChecked(true);
+					friends.setItemChecked(position, true);
+				}else{
+					cb.setChecked(false);
+					friends.setItemChecked(position, false);
+					friendsToDisplay.remove(friendsList.get(position).getId());
 				}
 			}
 
@@ -78,12 +82,9 @@ public class FriendsList extends Activity {
 	// Adapter to put the information from the friendsList in the listView. Info
 	// found during practicing with the Facebook SDK tutorial
 	public class FriendListAdapter extends ArrayAdapter<Friend> {
-		@SuppressWarnings("unchecked")
 		public FriendListAdapter(Context context, List<Friend> friendsList) {
 			super(context, R.layout.friendlistitem, friendsList);
-			friendsList = (ArrayList<Friend>) getIntent().getSerializableExtra("friendList");
 			for (int i = 0; i < friendsList.size(); i++) {
-				System.out.println("name: " + friendsList.get(i).getName());
 				friendsList.get(i).setAdapter(this);
 			}
 		}
@@ -102,6 +103,13 @@ public class FriendsList extends Activity {
 			if (f != null) {
 				TextView name = (TextView) view.findViewById(R.id.name);
 				ProfilePictureView picture = (ProfilePictureView) view.findViewById(R.id.friend_profile_pic);
+				CheckBox cb = (CheckBox) view.findViewById(R.id.checkBox1);
+				if(friendsToDisplay != null && friendsToDisplay.contains(f.getId())){
+					if(name.getText()== null || name.getText().equals("")){
+						cb.setChecked(true);
+						friends.setItemChecked(position, true);
+					}
+				}
 				if (name != null) {
 					name.setText(f.getName());
 				}
@@ -111,10 +119,6 @@ public class FriendsList extends Activity {
 			}
 			return view;
 		}
-		 public void onClick(View v) {
-		        TextView tv = (TextView) v.findViewById(R.id.name);
-		        tv.setText("text");
-		    }
 	}
 	
 	View.OnClickListener backHandler = new View.OnClickListener() {
@@ -128,11 +132,15 @@ public class FriendsList extends Activity {
 	    	SparseBooleanArray checked = friends.getCheckedItemPositions();
 	        ArrayList<Friend> selectedItems = new ArrayList<Friend>();
 	        for (int i = 0; i < checked.size(); i++) {
-	            // Item position in adapter
 	            int position = checked.keyAt(i);
-	            // Add sport if it is checked i.e.) == TRUE!
 	            if (checked.valueAt(i)){
-					selectedItems.add(friendsList.get(position));          
+					selectedItems.add(friendsList.get(position));     
+					if(friendsToDisplay == null){
+						friendsToDisplay = new ArrayList<String>();
+					}
+					if(!friendsToDisplay.contains(friendsList.get(position).getId())){
+						friendsToDisplay.add(friendsList.get(position).getId());
+					}
 	            }
 	        }
 	 
@@ -144,6 +152,7 @@ public class FriendsList extends Activity {
 	 
 	        Intent resultIntent = new Intent();
     		   resultIntent.putStringArrayListExtra("friendsId", outputStrArr);
+    		   resultIntent.putStringArrayListExtra("friendsToDisplay", friendsToDisplay);
     		   setResult(Activity.RESULT_OK, resultIntent);
     		   finish();
 	    }
