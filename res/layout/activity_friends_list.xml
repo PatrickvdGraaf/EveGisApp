@@ -45,5 +45,12 @@
         android:layout_weight="0.96"
         android:background="@drawable/button_border" >
     </ListView>
+    
+    <Button
+        android:id="@+id/submit"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:text="Submit" />
 
 </LinearLayout>

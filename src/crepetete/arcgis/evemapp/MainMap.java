@@ -60,6 +60,7 @@ public class MainMap extends Activity implements LocationListener {
 	private int level = 19;
 	private TextView userNameView;
 	private ArrayList<Friend> friendsList;
+	private ArrayList<String> selectedFriendsList;
 	private List<FestivalObject> objects;
 	private Envelope e;
 
@@ -135,6 +136,7 @@ public class MainMap extends Activity implements LocationListener {
 		// Add dynamic layer to MapView
 		mMapView.addLayer(new ArcGISTiledMapServiceLayer("http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"));
 		gl = new GraphicsLayer(GraphicsLayer.RenderingMode.STATIC);
+		selectedFriendsList = new ArrayList<String>();
 		createMapViewTapList();
 		mMapView.addLayer(gl);
 		
@@ -184,6 +186,17 @@ public class MainMap extends Activity implements LocationListener {
 	      } 
 	      break; 
 	    } 
+	    case (2) : { 
+		      if (resultCode == Activity.RESULT_OK) { 
+		      ArrayList<String> friendsToDisplay = data.getStringArrayListExtra("friendsId");
+		      System.out.println(friendsToDisplay.toString());
+		      selectedFriendsList = friendsToDisplay;
+		      if(location!=null){
+		    	  onLocationChanged(location);
+		      }
+		      } 
+		      break; 
+		    }
 	  } 
 	}
 
@@ -238,12 +251,15 @@ public class MainMap extends Activity implements LocationListener {
 
 			for (int i = 0; i < arr.length(); i++) {
 				String userId = arr.getJSONObject(i).getString("userId");
-				String userName = "friend";
-				double latitude = Double.parseDouble(arr.getJSONObject(i)
-						.getString("latitude"));
-				double longitude = Double.parseDouble(arr.getJSONObject(i)
-						.getString("longitude"));
-				new createPoint(latitude, longitude, "friend", userName, userId).execute();
+				System.out.println(userId);
+				if (selectedFriendsList.contains(userId)  && selectedFriendsList != null) {
+					String userName = "friend";
+					double latitude = Double.parseDouble(arr.getJSONObject(i)
+							.getString("latitude"));
+					double longitude = Double.parseDouble(arr.getJSONObject(i)
+							.getString("longitude"));
+					new createPoint(latitude, longitude, "friend", userName, userId).execute();
+				}
 			}
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
@@ -350,7 +366,7 @@ public class MainMap extends Activity implements LocationListener {
 			myIntent.putExtra("userId", user.getMyId());
 			myIntent.putExtra("userName", user.getMyName());
 			myIntent.putExtra("friendList", friendsList);
-			MainMap.this.startActivity(myIntent);
+			startActivityForResult(myIntent, 2);
 		}
 	};
 

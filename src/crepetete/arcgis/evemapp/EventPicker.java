@@ -110,6 +110,7 @@ public class EventPicker extends Activity {
 					if (eventsList.size() != 0) {
 						events.setAdapter(new EventListAdapter(
 								getBaseContext(), eventsList));
+						
 						events.setOnItemClickListener(new OnItemClickListener() {
 							public void onItemClick(AdapterView<?> arg0, View v, int position,long id) {
 				               Event e = eventsList.get(position);
