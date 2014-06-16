@@ -58,6 +58,7 @@ public class MainMap extends Activity implements LocationListener {
 	private ProfilePictureView profilePictureView;
 	private Button friendsPage, activityPage, myLocation, homeButton, zoomIn, zoomOut;
 	private int level = 19;
+	private String eventId;
 	private ArrayList<Friend> friendsList;
 	private ArrayList<String> selectedFriendsList;
 	private List<FestivalObject> objects;
@@ -148,6 +149,10 @@ public class MainMap extends Activity implements LocationListener {
 		hm = new HttpManager();
 
 		friendsList = (ArrayList<Friend>) getIntent().getSerializableExtra("friendList");
+		eventId = getIntent().getStringExtra("eventId");
+		if(eventId != null){
+			new loadEvent(eventId).execute("");
+		}
 
 		user = new User();
 		if (getIntent().getExtras() != null) {
@@ -173,7 +178,7 @@ public class MainMap extends Activity implements LocationListener {
 	  switch(requestCode) { 
 	    case (1) : { 
 	      if (resultCode == Activity.RESULT_OK) { 
-	      String eventId = data.getStringExtra("eventId");
+	    	  eventId = data.getStringExtra("eventId");
 	      new loadEvent(eventId).execute("");
 	      } 
 	      break; 
@@ -358,7 +363,6 @@ public class MainMap extends Activity implements LocationListener {
 			myIntent.putExtra("userId", user.getMyId());
 			myIntent.putExtra("userName", user.getMyName());
 			myIntent.putExtra("friendsList", friendsList);
-			System.out.println(friendsList.toString());
 			myIntent.putExtra("selectedFriendsList", selectedFriendsList);
 			startActivityForResult(myIntent, 2);
 		}
@@ -376,7 +380,7 @@ public class MainMap extends Activity implements LocationListener {
 
 	View.OnClickListener locationButtonHandler = new View.OnClickListener() {
 		public void onClick(View v) {
-			if(level<17){
+			if(level<17 && location != null){
 				while(level < 17){
 					mMapView.zoomin(true);
 					System.out.println(mMapView.getScale());
@@ -399,7 +403,7 @@ public class MainMap extends Activity implements LocationListener {
 						fo.setObj_width(Integer.toString(width*2));
 					}
 				}
-			}else if (level > 17){
+			}else if (level > 17 && location != null){
 				while(level > 17){
 					mMapView.zoomout(true);
 					System.out.println(mMapView.getScale());
@@ -429,7 +433,7 @@ public class MainMap extends Activity implements LocationListener {
 	View.OnClickListener homeButtonHandler = new View.OnClickListener() {
 		public void onClick(View v) {	
 			mMapView.centerAt(e.getCenter(), true);
-			if(level<17){
+			if(level<17 && eventId!=null){
 				while(level < 17){
 					mMapView.zoomin(true);
 					System.out.println(mMapView.getScale());
@@ -450,11 +454,11 @@ public class MainMap extends Activity implements LocationListener {
 						fo.setObj_width(Integer.toString(width*2));
 					}
 				}
-			}else if (level > 17){
+			}else if (level > 17 && eventId!=null){
 				while(level > 17){
 					mMapView.zoomout(true);
 					System.out.println(mMapView.getScale());
-					level++;
+					level--;
 					int[] grs = gl.getGraphicIDs();
 					while(grs==null){
 						grs = gl.getGraphicIDs();
@@ -480,7 +484,7 @@ public class MainMap extends Activity implements LocationListener {
 	
 	View.OnClickListener zoomInButtonHandler = new View.OnClickListener() {
 		public void onClick(View v) {
-			if(level !=19){
+			if(level !=19 && eventId!=null){
 				mMapView.zoomin(true);
 				System.out.println(mMapView.getScale());
 				level++;
@@ -499,13 +503,15 @@ public class MainMap extends Activity implements LocationListener {
 					fo.setObj_width(Integer.toString(width*2));
 					new createEventObjectPoint(fo, width*2, height*2).execute(); 
 				}
+			}else{
+				mMapView.zoomin();
 			}
 		}
 	};
 	
 	View.OnClickListener zoomOutButtonHandler = new View.OnClickListener() {
 		public void onClick(View v) {
-			if(level!=16){
+			if(level!=16 && eventId!=null){
 				mMapView.zoomToScale(mMapView.getCenter(), mMapView.getScale()*2);
 				System.out.println(mMapView.getScale());
 				level--;
@@ -526,6 +532,8 @@ public class MainMap extends Activity implements LocationListener {
 						new createEventObjectPoint(fo, width, height).execute();
 					}
 				}
+			}else{
+				mMapView.zoomin();
 			}
 		}
 	};
