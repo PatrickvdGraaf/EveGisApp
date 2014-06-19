@@ -1,10 +1,12 @@
 package crepetete.arcgis.evemapp;
 
+import com.esri.core.map.Graphic;
+
+import android.app.Dialog;
 import android.graphics.drawable.Drawable;
 
-public class FestivalObject {
+public abstract class FestivalObject {
 	
-	private String obj_id;
 	private String obj_lat;
 	private String obj_lng;
 	private String obj_type;
@@ -12,12 +14,17 @@ public class FestivalObject {
 	private String obj_width;
 	private String obj_height;
 	private String obj_angle;
+	private String obj_desc;
 	
-	public String getObj_id() {
-		return obj_id;
+	public String getDesc() {
+		return obj_desc;
 	}
-	public void setObj_id(String obj_id) {
-		this.obj_id = obj_id;
+	public void setDesc(String desc) {
+		this.obj_desc = desc;
+	}
+
+	public void setObj_image(Drawable obj_image) {
+		this.obj_image = obj_image;
 	}
 	public String getObj_lat() {
 		return obj_lat;
@@ -62,5 +69,4 @@ public class FestivalObject {
 	public void setObj_angle(String obj_angle) {
 		this.obj_angle = obj_angle;
 	}
-
 }

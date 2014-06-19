@@ -1,9 +1,13 @@
 package crepetete.arcgis.evemapp;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.http.client.ClientProtocolException;
@@ -170,6 +174,8 @@ public class MainMap extends Activity implements LocationListener {
 		if(location!=null){
 			onLocationChanged(location);
 		}
+		Point p = ToWebMercator(52.3, 5.45);
+		mMapView.zoomToScale(p, 9244646.48029992);
 	}
 	
 	@Override 
@@ -284,7 +290,7 @@ public class MainMap extends Activity implements LocationListener {
 		Log.d("Latitude", "disable");
 	}
 
-
+	//Set TapList on the map to find out if we need to show a popup.
 	private void createMapViewTapList() {
 		mMapView.setOnSingleTapListener(new OnSingleTapListener() {
 			private static final long serialVersionUID = 1L;
@@ -296,30 +302,36 @@ public class MainMap extends Activity implements LocationListener {
 				if (ids.length > 0) {
 					foundGraphic = gl.getGraphic(ids[0]);
 				}
+				int id = (Integer) foundGraphic.getAttributes().get("id");
 				// Als er geklikt is op een Graphic
 				if (foundGraphic != null) {
-					// custom dialog
 					final Dialog dialog = new Dialog(MainMap.this);
-					dialog.setContentView(R.layout.infodialog);
-					dialog.setTitle("Informatie");
-
-					TextView text = (TextView) dialog.findViewById(R.id.text);
-					text.setText((String) foundGraphic
-							.getAttributeValue("name"));
-					ProfilePictureView dialogPicture = (ProfilePictureView) dialog
-							.findViewById(R.id.dialog_profile_pic);
-
-					String id = (String) foundGraphic.getAttributeValue("id");
-					dialogPicture.setProfileId(id);
-					Button dialogButton = (Button) dialog
-							.findViewById(R.id.dialogButtonOK);
-					// if button is clicked, close the custom dialog
-					dialogButton.setOnClickListener(new OnClickListener() {
-						public void onClick(View v) {
-							dialog.dismiss();
-						}
-					});
-					dialog.show();
+					if(foundGraphic.getAttributes().get("Type").equals("self") || foundGraphic.getAttributes().get("Type").equals("friend")){
+						// custom dialog
+						dialog.setContentView(R.layout.infodialog);
+						dialog.setTitle("Informatie");
+	
+						TextView text = (TextView) dialog.findViewById(R.id.text);
+						text.setText((String) foundGraphic
+								.getAttributeValue("name"));
+						ProfilePictureView dialogPicture = (ProfilePictureView) dialog
+								.findViewById(R.id.dialog_profile_pic);
+	
+						String id1 = (String) foundGraphic.getAttributeValue("id");
+						dialogPicture.setProfileId(id1);
+						Button dialogButton = (Button) dialog
+								.findViewById(R.id.dialogButtonOK);
+						// if button is clicked, close the custom dialog
+						dialogButton.setOnClickListener(new OnClickListener() {
+							public void onClick(View v) {
+								dialog.dismiss();
+							}
+						});
+					}else if (objects.get(id) instanceof Stage){
+						System.out.println("Stage");
+						Stage s = (Stage) objects.get(id);
+						s.showDialog(dialog, foundGraphic);
+					}
 				}
 			}
 		});
@@ -387,20 +399,22 @@ public class MainMap extends Activity implements LocationListener {
 					level++;
 					Point myPoint = ToWebMercator(location.getLongitude(), location.getLatitude());
 					mMapView.centerAt(myPoint, true);
-					int[] grs = gl.getGraphicIDs();
-					for(int i = 0; i<grs.length;i++){
-						Graphic g = gl.getGraphic(grs[i]);
-						if(g.getAttributeValue("type")!="self" || g.getAttributeValue("type")!="friend"){
-							gl.removeGraphic(grs[i]);
+					if(objects!=null){
+						int[] grs = gl.getGraphicIDs();
+						for(int i = 0; i<grs.length;i++){
+							Graphic g = gl.getGraphic(grs[i]);
+							if(g.getAttributeValue("type")!="self" || g.getAttributeValue("type")!="friend"){
+								gl.removeGraphic(grs[i]);
+							}
 						}
-					}
-					for (int i = 0; i < objects.size(); i++) {
-						FestivalObject fo = objects.get(i);
-						int width = (int) (Integer.parseInt(fo.getObj_width()));
-						int height = (int) (Integer.parseInt(fo.getObj_height()));
-						new createEventObjectPoint(fo, width*2, height*2).execute(); 
-						fo.setObj_height(Integer.toString(height*2));
-						fo.setObj_width(Integer.toString(width*2));
+						for (int i = 0; i < objects.size(); i++) {
+							FestivalObject fo = objects.get(i);
+							int width = (int) (Integer.parseInt(fo.getObj_width()));
+							int height = (int) (Integer.parseInt(fo.getObj_height()));
+							new createEventObjectPoint(fo, width*2, height*2 ,i).execute(); 
+							fo.setObj_height(Integer.toString(height*2));
+							fo.setObj_width(Integer.toString(width*2));
+						}
 					}
 				}
 			}else if (level > 17 && location != null){
@@ -410,20 +424,23 @@ public class MainMap extends Activity implements LocationListener {
 					level--;
 					Point myPoint = ToWebMercator(location.getLongitude(), location.getLatitude());
 					mMapView.centerAt(myPoint, true);
-					int[] grs = gl.getGraphicIDs();
-					for(int i = 0; i<grs.length;i++){
-						Graphic g = gl.getGraphic(grs[i]);
-						if(g.getAttributeValue("type")!="self" || g.getAttributeValue("type")!="friend"){
-							gl.removeGraphic(grs[i]);
+					if(objects!=null){
+						int[] grs = gl.getGraphicIDs();
+						for(int i = 0; i<grs.length;i++){
+							Graphic g = gl.getGraphic(grs[i]);
+							if(g.getAttributeValue("type")!="self" || g.getAttributeValue("type")!="friend"){
+								gl.removeGraphic(grs[i]);
+							}
 						}
-					}
-					for (int i = 0; i < objects.size(); i++) {
-						FestivalObject fo = objects.get(i);
-						int width = (int) (Integer.parseInt(fo.getObj_width()));
-						int height = (int) (Integer.parseInt(fo.getObj_height()));
-						new createEventObjectPoint(fo, width/2, height/2).execute(); 
-						fo.setObj_height(Integer.toString(height/2));
-						fo.setObj_width(Integer.toString(width/2));
+					
+						for (int i = 0; i < objects.size(); i++) {
+							FestivalObject fo = objects.get(i);
+							int width = (int) (Integer.parseInt(fo.getObj_width()));
+							int height = (int) (Integer.parseInt(fo.getObj_height()));
+							new createEventObjectPoint(fo, width/2, height/2, i).execute(); 
+							fo.setObj_height(Integer.toString(height/2));
+							fo.setObj_width(Integer.toString(width/2));
+						}
 					}
 				}
 			}
@@ -438,20 +455,22 @@ public class MainMap extends Activity implements LocationListener {
 					mMapView.zoomin(true);
 					System.out.println(mMapView.getScale());
 					level++;
-					int[] grs = gl.getGraphicIDs();
-					for(int i = 0; i<grs.length;i++){
-						Graphic g = gl.getGraphic(grs[i]);
-						if(g.getAttributeValue("type")!="self" || g.getAttributeValue("type")!="friend"){
-							gl.removeGraphic(grs[i]);
+					if(objects!=null){
+						int[] grs = gl.getGraphicIDs();
+						for(int i = 0; i<grs.length;i++){
+							Graphic g = gl.getGraphic(grs[i]);
+							if(g.getAttributeValue("type")!="self" || g.getAttributeValue("type")!="friend"){
+								gl.removeGraphic(grs[i]);
+							}
 						}
-					}
-					for (int i = 0; i < objects.size(); i++) {
-						FestivalObject fo = objects.get(i);
-						int width = (int) (Integer.parseInt(fo.getObj_width()));
-						int height = (int) (Integer.parseInt(fo.getObj_height()));
-						new createEventObjectPoint(fo, width*2, height*2).execute(); 
-						fo.setObj_height(Integer.toString(height*2));
-						fo.setObj_width(Integer.toString(width*2));
+						for (int i = 0; i < objects.size(); i++) {
+							FestivalObject fo = objects.get(i);
+							int width = (int) (Integer.parseInt(fo.getObj_width()));
+							int height = (int) (Integer.parseInt(fo.getObj_height()));
+							new createEventObjectPoint(fo, width*2, height*2, i).execute(); 
+							fo.setObj_height(Integer.toString(height*2));
+							fo.setObj_width(Integer.toString(width*2));
+						}
 					}
 				}
 			}else if (level > 17 && eventId!=null){
@@ -459,23 +478,25 @@ public class MainMap extends Activity implements LocationListener {
 					mMapView.zoomout(true);
 					System.out.println(mMapView.getScale());
 					level--;
-					int[] grs = gl.getGraphicIDs();
-					while(grs==null){
-						grs = gl.getGraphicIDs();
-					}
-					for(int i = 0; i<grs.length;i++){
-						Graphic g = gl.getGraphic(grs[i]);
-						if(g.getAttributeValue("type")!="self" || g.getAttributeValue("type")!="friend"){
-							gl.removeGraphic(grs[i]);
+					if(objects!=null){
+						int[] grs = gl.getGraphicIDs();
+						while(grs==null){
+							grs = gl.getGraphicIDs();
 						}
-					}
-					for (int i = 0; i < objects.size(); i++) {
-						FestivalObject fo = objects.get(i);
-						int width = (int) (Integer.parseInt(fo.getObj_width()));
-						int height = (int) (Integer.parseInt(fo.getObj_height()));
-						new createEventObjectPoint(fo, width/2, height/2).execute(); 
-						fo.setObj_height(Integer.toString(height/2));
-						fo.setObj_width(Integer.toString(width/2));
+						for(int i = 0; i<grs.length;i++){
+							Graphic g = gl.getGraphic(grs[i]);
+							if(g.getAttributeValue("type")!="self" || g.getAttributeValue("type")!="friend"){
+								gl.removeGraphic(grs[i]);
+							}
+						}
+						for (int i = 0; i < objects.size(); i++) {
+							FestivalObject fo = objects.get(i);
+							int width = (int) (Integer.parseInt(fo.getObj_width()));
+							int height = (int) (Integer.parseInt(fo.getObj_height()));
+							new createEventObjectPoint(fo, width/2, height/2, i).execute(); 
+							fo.setObj_height(Integer.toString(height/2));
+							fo.setObj_width(Integer.toString(width/2));
+						}
 					}
 				}
 			}
@@ -501,7 +522,7 @@ public class MainMap extends Activity implements LocationListener {
 					int height = (int) (Integer.parseInt(fo.getObj_height()));
 					fo.setObj_height(Integer.toString(height*2));
 					fo.setObj_width(Integer.toString(width*2));
-					new createEventObjectPoint(fo, width*2, height*2).execute(); 
+					new createEventObjectPoint(fo, width*2, height*2, i).execute(); 
 				}
 			}else{
 				mMapView.zoomin();
@@ -529,11 +550,11 @@ public class MainMap extends Activity implements LocationListener {
 					if(width>0 && height>0){
 						fo.setObj_height(Integer.toString(height));
 						fo.setObj_width(Integer.toString(width));
-						new createEventObjectPoint(fo, width, height).execute();
+						new createEventObjectPoint(fo, width, height, i).execute();
 					}
 				}
 			}else{
-				mMapView.zoomin();
+				mMapView.zoomout();
 			}
 		}
 	};
@@ -543,21 +564,21 @@ public class MainMap extends Activity implements LocationListener {
 		private double lng; 
 		private Drawable d;
 		private String type;
-		private String id;
 		private int width;
 		private int height;
 		private int angle;
+		int i;
 		
-        public createEventObjectPoint(FestivalObject fo, int width, int height) {
+        public createEventObjectPoint(FestivalObject fo, int width, int height, int i) {
             super();
             this.lat=Double.parseDouble(fo.getObj_lat());
             this.lng=Double.parseDouble(fo.getObj_lng());
-            this.id=fo.getObj_id();
             this.type=fo.getObj_type();
             this.d=fo.getObj_image();
             this.width=width;
             this.height=height;
             this.angle=Integer.parseInt(fo.getObj_angle());
+            this.i=i;
         }
         
         @Override
@@ -565,7 +586,7 @@ public class MainMap extends Activity implements LocationListener {
         	if (d != null){
     			Map<String, Object> attr = new HashMap<String, Object>();
     			attr.put("type", type);
-    			attr.put("id", id);
+    			attr.put("id", i);
     			Bitmap bitmap = ((BitmapDrawable) d).getBitmap();
     			d = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, width, height, true));
     			PictureMarkerSymbol pms = new PictureMarkerSymbol(d);
@@ -654,34 +675,27 @@ public class MainMap extends Activity implements LocationListener {
 
     			arr = jsonObj.getJSONArray("objects");
     			for (int i = 0; i < arr.length(); i++) {
-    				String obj_id = arr.getJSONObject(i).getString("id");
-    				String obj_lat = arr.getJSONObject(i).getString("lat");
-    				String obj_lng = arr.getJSONObject(i).getString("lng");
-    				String obj_type = arr.getJSONObject(i).getString("type");
-    				String obj_image_url = "http://web.insidion.com" + arr.getJSONObject(i).getString(
-    						"image_url");
-    				String obj_width = arr.getJSONObject(i).getString("width");
-    				String obj_height = arr.getJSONObject(i).getString("height");
-    				String obj_angle = arr.getJSONObject(i).getString("angle");
-
-    				FestivalObject fo = new FestivalObject();
-    				fo.setObj_angle(obj_angle);
-    				fo.setObj_height(obj_height);
-    				fo.setObj_id(obj_id);
-    				fo.setObj_image_url(obj_image_url);
-    				fo.setObj_lat(obj_lat);
-    				fo.setObj_lng(obj_lng);
-    				fo.setObj_type(obj_type);
-    				fo.setObj_width(obj_width);
-
-    				objects.add(fo);
+    				JSONObject info = arr.getJSONObject(i);
+    				String obj_type = info.getString("type");
+    				if(obj_type.equals("Stage")){
+    					Stage s = new Stage(info);        				
+	    				objects.add(s);
+    				}else if(obj_type.equals("Toilet")){
+    					Toilet t = new Toilet(info);
+        				objects.add(t);
+    				}else if(obj_type.equals("InfoStand")){
+						InfoStand is = new InfoStand(info);
+	    				objects.add(is);
+    				}else if(obj_type.equals("FoodStand")){
+						FoodStand fs = new FoodStand(info);	    				
+	    				objects.add(fs);
+    				}
     			}
-    			
     			for (int i = 0; i < objects.size(); i++) {
     				FestivalObject fo = objects.get(i);
     				int width = Integer.parseInt(fo.getObj_width());
     				int height = Integer.parseInt(fo.getObj_height());
-    				new createEventObjectPoint(fo, width, height).execute();
+    				new createEventObjectPoint(fo, width, height, i).execute();
     			}		
     		} catch (ClientProtocolException e) {
     			e.printStackTrace();
@@ -689,7 +703,9 @@ public class MainMap extends Activity implements LocationListener {
     			e.printStackTrace();
     		} catch (JSONException e) {
     			e.printStackTrace();
-    		}
+    		} catch (ParseException e1) {
+				e1.printStackTrace();
+			}
  
     		mMapView.zoomToScale(e.getCenter(), 2490.6145880451536);
     		level = 19;
