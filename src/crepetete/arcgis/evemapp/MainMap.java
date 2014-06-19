@@ -2,12 +2,9 @@ package crepetete.arcgis.evemapp;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import org.apache.http.client.ClientProtocolException;
@@ -28,6 +25,7 @@ import com.facebook.widget.ProfilePictureView;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
@@ -41,11 +39,14 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.view.Window;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.PopupMenu;
 import android.widget.TextView;
@@ -302,11 +303,11 @@ public class MainMap extends Activity implements LocationListener {
 				if (ids.length > 0) {
 					foundGraphic = gl.getGraphic(ids[0]);
 				}
-				int id = (Integer) foundGraphic.getAttributes().get("id");
 				// Als er geklikt is op een Graphic
 				if (foundGraphic != null) {
+					int id = Integer.parseInt((String) foundGraphic.getAttributes().get("id")) ;
 					final Dialog dialog = new Dialog(MainMap.this);
-					if(foundGraphic.getAttributes().get("Type").equals("self") || foundGraphic.getAttributes().get("Type").equals("friend")){
+					if(foundGraphic.getAttributes().get("type").equals("self") || foundGraphic.getAttributes().get("type").equals("friend")){
 						// custom dialog
 						dialog.setContentView(R.layout.infodialog);
 						dialog.setTitle("Informatie");
@@ -319,8 +320,7 @@ public class MainMap extends Activity implements LocationListener {
 	
 						String id1 = (String) foundGraphic.getAttributeValue("id");
 						dialogPicture.setProfileId(id1);
-						Button dialogButton = (Button) dialog
-								.findViewById(R.id.dialogButtonOK);
+						Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
 						// if button is clicked, close the custom dialog
 						dialogButton.setOnClickListener(new OnClickListener() {
 							public void onClick(View v) {
@@ -328,9 +328,17 @@ public class MainMap extends Activity implements LocationListener {
 							}
 						});
 					}else if (objects.get(id) instanceof Stage){
-						System.out.println("Stage");
 						Stage s = (Stage) objects.get(id);
-						s.showDialog(dialog, foundGraphic);
+						s.showDialog(dialog);
+					}else if (objects.get(id) instanceof Toilet){
+						Toilet t = (Toilet) objects.get(id);
+						t.showDialog(dialog);
+					}else if (objects.get(id) instanceof InfoStand){
+						InfoStand is = (InfoStand) objects.get(id);
+						is.showDialog(dialog);
+					}else if (objects.get(id) instanceof FoodStand){
+						FoodStand fs = (FoodStand) objects.get(id);
+						fs.showDialog(dialog);
 					}
 				}
 			}
@@ -537,6 +545,9 @@ public class MainMap extends Activity implements LocationListener {
 				System.out.println(mMapView.getScale());
 				level--;
 				int[] grs = gl.getGraphicIDs();
+				while(grs==null){
+					grs = gl.getGraphicIDs();
+				}
 				for(int i = 0; i<grs.length;i++){
 					Graphic g = gl.getGraphic(grs[i]);
 					if(g.getAttributeValue("type")!="self" || g.getAttributeValue("type")!="friend"){
@@ -586,7 +597,7 @@ public class MainMap extends Activity implements LocationListener {
         	if (d != null){
     			Map<String, Object> attr = new HashMap<String, Object>();
     			attr.put("type", type);
-    			attr.put("id", i);
+    			attr.put("id", Integer.toString(i));
     			Bitmap bitmap = ((BitmapDrawable) d).getBitmap();
     			d = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, width, height, true));
     			PictureMarkerSymbol pms = new PictureMarkerSymbol(d);
@@ -678,16 +689,16 @@ public class MainMap extends Activity implements LocationListener {
     				JSONObject info = arr.getJSONObject(i);
     				String obj_type = info.getString("type");
     				if(obj_type.equals("Stage")){
-    					Stage s = new Stage(info);        				
+    					Stage s = new Stage(info, i, getParent());        				
 	    				objects.add(s);
     				}else if(obj_type.equals("Toilet")){
-    					Toilet t = new Toilet(info);
+    					Toilet t = new Toilet(info, i);
         				objects.add(t);
     				}else if(obj_type.equals("InfoStand")){
-						InfoStand is = new InfoStand(info);
+						InfoStand is = new InfoStand(info, i);
 	    				objects.add(is);
     				}else if(obj_type.equals("FoodStand")){
-						FoodStand fs = new FoodStand(info);	    				
+						FoodStand fs = new FoodStand(info, i);	    				
 	    				objects.add(fs);
     				}
     			}
@@ -712,5 +723,40 @@ public class MainMap extends Activity implements LocationListener {
             return "Executed";
         }
     }
+	public class RosterListAdapter extends ArrayAdapter<Friend> {
+		private List<RosterObject> list;
+		public RosterListAdapter(Context context, List<RosterObject> list) {
+			super(context, R.layout.rosterlistitem);
+			this.list=list;
+			System.out.println(list);
+			for (int i = 0; i < list.size(); i++) {
+				list.get(i).setAdapter(this);
+			}
+		}
+		
+		@Override
+		// Creating the View for an item in the ListView
+		public View getView(int position, View convertView, ViewGroup parent) {
+			View view = convertView;
+			if (view == null) {
+				LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+				view = inflater.inflate(R.layout.rosterlistitem, null);
+			}
+			// Hier haal ik de Friend objecten uit de friendsList en stop ze per
+			// object in de listview
+			RosterObject ro = list.get(position);
+			if (ro != null) {
+				TextView performer = (TextView) view.findViewById(R.id.performer);
+				TextView time = (TextView) view.findViewById(R.id.time);
+				if (performer != null) {
+					performer.setText(ro.getPerformer());
+				}
+				if (time != null) {
+					time.setText(ro.getStartTime()+" - "+ro.getEndTime());
+				}
+			}
+			return view;
+		}
+	}
 }
 
