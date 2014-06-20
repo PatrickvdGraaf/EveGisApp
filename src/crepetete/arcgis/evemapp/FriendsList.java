@@ -26,8 +26,6 @@ import android.widget.TextView;
 
 public class FriendsList extends Activity {
 
-	private ProfilePictureView profilePictureView;
-	private TextView userNameView;
 	private Button backButton;
 	private Button submit;
 	private ListView friends;
@@ -50,15 +48,9 @@ public class FriendsList extends Activity {
 		friendsToDisplay = getIntent().getStringArrayListExtra("selectedFriendsList");
 		friends.setAdapter(adapter);
 
-		profilePictureView = (ProfilePictureView) findViewById(R.id.selection_profile_pic);
-		profilePictureView.setCropped(true);
-
-		userNameView = (TextView) findViewById(R.id.selection_user_name);
 		backButton = (Button) findViewById(R.id.back);
 		submit = (Button) findViewById(R.id.submit);
-		
-		profilePictureView.setProfileId(getIntent().getStringExtra("userId"));
-		userNameView.setText(getIntent().getStringExtra("userName"));
+		 
 		backButton.setOnClickListener(backHandler);
 		submit.setOnClickListener(submitHandler);	
 		friends.setOnItemClickListener(new OnItemClickListener() {

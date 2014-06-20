@@ -51,7 +51,6 @@ public class EventPicker extends Activity {
 		setContentView(R.layout.activity_event_picker);
 		hm = new HttpManager();
 		events = (ListView) findViewById(R.id.eventList);
-		eventIdET = (EditText) findViewById(R.id.ETeventId);
 		eventSearchB = (Button) findViewById(R.id.BeventSearch);
 		back = (Button) findViewById(R.id.back);
 		eventsList = new ArrayList<Event>();
@@ -65,10 +64,8 @@ public class EventPicker extends Activity {
 
 	View.OnClickListener eventSearchButtonHandler = new View.OnClickListener() {
 		public void onClick(View v) {
-			if (eventIdET.getText() != null) {
-				String eventId = String.valueOf(eventIdET.getText());
 				try {
-					JSONObject jsonObj = hm.getEvent(eventId, getBaseContext());
+					JSONObject jsonObj = hm.getEvent("", getBaseContext());
 					JSONArray arr = jsonObj.getJSONArray("events");
 					for (int i = 0; i < arr.length(); i++) {
 						String name = arr.getJSONObject(i).getString("name");
@@ -129,7 +126,6 @@ public class EventPicker extends Activity {
 					e.printStackTrace();
 				}
 			}
-		}
 	};
 
 	View.OnClickListener backButtonHandler = new View.OnClickListener() {

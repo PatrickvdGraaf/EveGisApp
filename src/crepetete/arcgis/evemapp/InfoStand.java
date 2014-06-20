@@ -47,7 +47,8 @@ public class InfoStand extends FestivalObject{
 			public void onClick(View v) {
 				dialog.dismiss();
 			}
-		});		
+		});	
+		dialog.show();
 	}
 
 	

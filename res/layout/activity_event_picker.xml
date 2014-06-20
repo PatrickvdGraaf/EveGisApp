@@ -3,46 +3,44 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context=".EventPicker" >
+    tools:context=".EventPicker" 
+    android:background="#F5D0A9">
+    
+    <LinearLayout
+        android:id="@+id/ll"
+        android:layout_width="match_parent"
+    	android:layout_height="wrap_content"
+        android:background="#FE642E">
+        
+	    <Button
+	        android:id="@+id/back"
+	        style="?android:attr/buttonStyleSmall"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="@string/back" />
+    </LinearLayout>
 
     <Button
         android:id="@+id/BeventSearch"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/ETeventId"
+        android:layout_below="@+id/ll"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="10dp"
+        
         android:text="@string/search" />
 
     <ListView
         android:id="@+id/eventList"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="20dp"
         android:layout_alignParentLeft="true"
         android:paddingLeft="@dimen/activity_horizontal_margin"
    		android:paddingRight="@dimen/activity_horizontal_margin"
-        android:layout_below="@+id/BeventSearch" >
+        android:layout_below="@+id/BeventSearch" 
+        android:background="@drawable/button_border">
 
     </ListView>
-
-    <EditText
-        android:id="@+id/ETeventId"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/back"
-        android:layout_below="@+id/back"
-        android:ems="10"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-    	android:paddingRight="@dimen/activity_horizontal_margin"
-        android:inputType="number" />
-
-    <Button
-        android:id="@+id/back"
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:text="@string/back" />
 
 </RelativeLayout>

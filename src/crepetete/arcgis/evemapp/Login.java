@@ -60,6 +60,7 @@ public class Login extends Activity {
 		mainmap = (Button) findViewById(R.id.mainmap);
 		mainmap.setVisibility(View.GONE);
 		mainmap.setOnClickListener(mainmapHandler);
+		System.out.println(findViewById(R.id.selection_profile_pic).getClass());
 		profilePictureView = (ProfilePictureView) findViewById(R.id.selection_profile_pic);
 		profilePictureView.setVisibility(View.GONE);
 		username = (TextView) findViewById(R.id.selection_user_name);

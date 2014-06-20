@@ -3,12 +3,14 @@
     xmlns:facebook="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content" 
-    android:id="@+id/rInfo">
+    android:id="@+id/rInfo"
+    android:background="#F5D0A9">
 
     <LinearLayout
         android:id="@+id/info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" 
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:background="#FE642E">
     </LinearLayout>
 </RelativeLayout>

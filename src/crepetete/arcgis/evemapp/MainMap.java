@@ -25,7 +25,6 @@ import com.facebook.widget.ProfilePictureView;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
@@ -39,14 +38,11 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.view.Window;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.PopupMenu;
 import android.widget.TextView;
@@ -305,7 +301,6 @@ public class MainMap extends Activity implements LocationListener {
 				}
 				// Als er geklikt is op een Graphic
 				if (foundGraphic != null) {
-					int id = Integer.parseInt((String) foundGraphic.getAttributes().get("id")) ;
 					final Dialog dialog = new Dialog(MainMap.this);
 					if(foundGraphic.getAttributes().get("type").equals("self") || foundGraphic.getAttributes().get("type").equals("friend")){
 						// custom dialog
@@ -327,17 +322,18 @@ public class MainMap extends Activity implements LocationListener {
 								dialog.dismiss();
 							}
 						});
-					}else if (objects.get(id) instanceof Stage){
-						Stage s = (Stage) objects.get(id);
+						dialog.show();
+					}else if (objects.get(Integer.parseInt((String) foundGraphic.getAttributes().get("id"))) instanceof Stage){
+						Stage s = (Stage) objects.get(Integer.parseInt((String) foundGraphic.getAttributes().get("id")));
 						s.showDialog(dialog);
-					}else if (objects.get(id) instanceof Toilet){
-						Toilet t = (Toilet) objects.get(id);
+					}else if (objects.get(Integer.parseInt((String) foundGraphic.getAttributes().get("id"))) instanceof Toilet){
+						Toilet t = (Toilet) objects.get(Integer.parseInt((String) foundGraphic.getAttributes().get("id")));
 						t.showDialog(dialog);
-					}else if (objects.get(id) instanceof InfoStand){
-						InfoStand is = (InfoStand) objects.get(id);
+					}else if (objects.get(Integer.parseInt((String) foundGraphic.getAttributes().get("id"))) instanceof InfoStand){
+						InfoStand is = (InfoStand) objects.get(Integer.parseInt((String) foundGraphic.getAttributes().get("id")));
 						is.showDialog(dialog);
-					}else if (objects.get(id) instanceof FoodStand){
-						FoodStand fs = (FoodStand) objects.get(id);
+					}else if (objects.get(Integer.parseInt((String) foundGraphic.getAttributes().get("id"))) instanceof FoodStand){
+						FoodStand fs = (FoodStand) objects.get(Integer.parseInt((String) foundGraphic.getAttributes().get("id")));
 						fs.showDialog(dialog);
 					}
 				}
@@ -532,15 +528,13 @@ public class MainMap extends Activity implements LocationListener {
 					fo.setObj_width(Integer.toString(width*2));
 					new createEventObjectPoint(fo, width*2, height*2, i).execute(); 
 				}
-			}else{
-				mMapView.zoomin();
 			}
 		}
 	};
 	
 	View.OnClickListener zoomOutButtonHandler = new View.OnClickListener() {
 		public void onClick(View v) {
-			if(level!=16 && eventId!=null){
+			if(level!=5 && eventId!=null){
 				mMapView.zoomToScale(mMapView.getCenter(), mMapView.getScale()*2);
 				System.out.println(mMapView.getScale());
 				level--;
@@ -564,8 +558,6 @@ public class MainMap extends Activity implements LocationListener {
 						new createEventObjectPoint(fo, width, height, i).execute();
 					}
 				}
-			}else{
-				mMapView.zoomout();
 			}
 		}
 	};
@@ -718,45 +710,10 @@ public class MainMap extends Activity implements LocationListener {
 				e1.printStackTrace();
 			}
  
-    		mMapView.zoomToScale(e.getCenter(), 2490.6145880451536);
+    		mMapView.zoomToScale(e.getCenter(), 1878.6649902747558);
     		level = 19;
             return "Executed";
         }
     }
-	public class RosterListAdapter extends ArrayAdapter<Friend> {
-		private List<RosterObject> list;
-		public RosterListAdapter(Context context, List<RosterObject> list) {
-			super(context, R.layout.rosterlistitem);
-			this.list=list;
-			System.out.println(list);
-			for (int i = 0; i < list.size(); i++) {
-				list.get(i).setAdapter(this);
-			}
-		}
-		
-		@Override
-		// Creating the View for an item in the ListView
-		public View getView(int position, View convertView, ViewGroup parent) {
-			View view = convertView;
-			if (view == null) {
-				LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-				view = inflater.inflate(R.layout.rosterlistitem, null);
-			}
-			// Hier haal ik de Friend objecten uit de friendsList en stop ze per
-			// object in de listview
-			RosterObject ro = list.get(position);
-			if (ro != null) {
-				TextView performer = (TextView) view.findViewById(R.id.performer);
-				TextView time = (TextView) view.findViewById(R.id.time);
-				if (performer != null) {
-					performer.setText(ro.getPerformer());
-				}
-				if (time != null) {
-					time.setText(ro.getStartTime()+" - "+ro.getEndTime());
-				}
-			}
-			return view;
-		}
-	}
 }
 

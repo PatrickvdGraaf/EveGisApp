@@ -103,7 +103,7 @@ public class Stage extends FestivalObject{
 					dialog.dismiss();
 				}
 			});
-			
+			dialog.setCanceledOnTouchOutside(true);
 			dialogButton.setLayoutParams(lp1);
 			dialogButton.setId(1);
 			dialogButton.setText("Sluit");

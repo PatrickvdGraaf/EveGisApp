@@ -4,27 +4,21 @@
     android:baselineAligned="false"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
-   <LinearLayout
+    android:orientation="vertical"
+    android:background="#F5D0A9">
+   <RelativeLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
-        android:orientation="horizontal" >
+        android:orientation="horizontal" 
+        android:background="#FE642E">
 
        <Button
            android:id="@+id/back"
            style="?android:attr/buttonStyleSmall"
            android:layout_width="wrap_content"
            android:layout_height="wrap_content"
-           android:layout_gravity="left"
            android:text="@string/back" />
-
-        <com.facebook.widget.ProfilePictureView
-            android:id="@+id/selection_profile_pic"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            facebook:preset_size="small" />
 
         <TextView
             android:id="@+id/selection_user_name"
@@ -35,7 +29,7 @@
             android:textColor="#FFFFFF"
             android:textSize="18sp" />
         
-    </LinearLayout>
+    </RelativeLayout>
     
     <ListView
         android:id="@+id/friends_list"

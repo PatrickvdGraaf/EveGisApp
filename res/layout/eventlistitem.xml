@@ -21,7 +21,6 @@
             android:layout_alignParentTop="true"
             android:layout_toRightOf="@+id/eventLogo"
             android:paddingLeft="5dp"
-            android:textColor="#FFFFFF"
             android:textSize="20sp" />
     	
     	<TextView
@@ -53,7 +52,6 @@
             android:layout_toRightOf="@+id/eventLogo"
             android:layout_below="@+id/eventDate"
             android:paddingLeft="5dp"
-            android:textColor="#FFFFFF"
             android:textSize="15sp" />
 
 

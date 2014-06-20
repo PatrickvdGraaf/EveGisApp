@@ -4,45 +4,49 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
-    
-    <LinearLayout
+
+    <RelativeLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
+        android:background="#FE642E"
         android:orientation="horizontal" >
-
-        <com.facebook.widget.ProfilePictureView
-            android:id="@+id/selection_profile_pic"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            facebook:preset_size="small" >
-        </com.facebook.widget.ProfilePictureView>
-
-        <TextView
-            android:id="@+id/selection_user_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginLeft="10dp"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp" />
-        <Button
-            android:id="@+id/activitymanager"
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="55dp"
-            android:layout_height="match_parent"
-            android:layout_gravity="right"
-            android:background="@drawable/plus" />
 
         <Button
             android:id="@+id/friends"
             style="?android:attr/buttonStyleSmall"
             android:layout_width="55dp"
-            android:layout_height="match_parent"
-            android:layout_gravity="right"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/selection_profile_pic"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="10dp" 
             android:background="@drawable/friends" />
-    
-    </LinearLayout>
+
+        <com.facebook.widget.ProfilePictureView
+            android:id="@+id/selection_profile_pic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            facebook:preset_size="small"
+            android:layout_marginLeft="10dp" 
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp">
+        </com.facebook.widget.ProfilePictureView>
+
+        <Button
+            android:id="@+id/activitymanager"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="55dp"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/friends"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="65dp"
+            android:background="@drawable/plus" />
+
+    </RelativeLayout>
     
 	<RelativeLayout
 	    android:id="@+id/relative_map_layout"
