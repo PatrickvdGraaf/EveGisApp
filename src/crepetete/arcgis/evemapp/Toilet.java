@@ -11,6 +11,9 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class Toilet extends FestivalObject{
+	
+	//Ons Toilet Object heeft alleen een prijs en naam, die weergegeven worden in de custom showDialog method.
+	
 	private String name;
 	private Double price;
 	public Toilet(JSONObject info, int i) throws JSONException {

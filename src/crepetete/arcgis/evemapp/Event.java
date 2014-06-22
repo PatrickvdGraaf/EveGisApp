@@ -7,13 +7,18 @@ import java.util.List;
 import android.graphics.drawable.Drawable;
 import android.widget.BaseAdapter;
 
-public class Event implements Serializable{
-	
+public class Event implements Serializable {
+
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	
+
+	// Onze eigen Event class is een container met de nodige informatie. Dit
+	// event wordt geselecteerd in de EventList, en aan de hand
+	// daarvan wordt de info hier opgevuld. Vooral de lijst met FestivalObjecten
+	// wordt vaak gebruikt.
+
 	private String name;
 	private String id;
 	private String description;
@@ -26,12 +31,11 @@ public class Event implements Serializable{
 	private Drawable image;
 	private BaseAdapter adapter;
 	private List<FestivalObject> objects;
-	
 
-	public Event(){
+	public Event() {
 		objects = new ArrayList<FestivalObject>();
 	}
-	
+
 	public String getId() {
 		return id;
 	}
@@ -87,7 +91,7 @@ public class Event implements Serializable{
 	public void setName(String name) {
 		this.name = name;
 		if (adapter != null) {
-		    adapter.notifyDataSetChanged();
+			adapter.notifyDataSetChanged();
 		}
 	}
 
@@ -120,13 +124,13 @@ public class Event implements Serializable{
 	}
 
 	public void setImage(Drawable image) {
-		this.image= image;
+		this.image = image;
 		if (adapter != null) {
-		    adapter.notifyDataSetChanged();
+			adapter.notifyDataSetChanged();
 		}
 	}
 
 	public void setAdapter(BaseAdapter adapter) {
-	    this.adapter = adapter;
+		this.adapter = adapter;
 	}
 }

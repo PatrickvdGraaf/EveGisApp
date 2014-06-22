@@ -69,16 +69,14 @@ public class MainMap extends Activity implements LocationListener {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		// Remove title bar
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.mainmap);
-
-		// Solves NetworkOnMainThreadException
 		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
 				.permitAll().build();
 		StrictMode.setThreadPolicy(policy);
 
-		// Retrieve the map and initial extent from XML layout
+		//In deze 'alinea' maken we de Esri kaart en alle knoppen op de interface aan en zet een onclicklistener
+		//die verder in deze code verwerkt wordt.
 		mMapView = (MapView) findViewById(R.id.map);
 		profilePictureView = (ProfilePictureView) findViewById(R.id.selection_profile_pic);
 		profilePictureView.setCropped(true);
@@ -101,6 +99,9 @@ public class MainMap extends Activity implements LocationListener {
 						return true;
 					}
 				});
+		//Omdat er geen statische plaatjes op de kaart aangemaakt kunnen worden, hebben we de mogenlijkheid om met gestures 
+		//in te zoomen uitgeschakeld. Zoomen kan alleen nog maar met de knoppen, omdat hierbij de width en height van de knoppen 
+		//wprdt berekend en juist weergegeven kunnen worden.
 		mMapView.setOnTouchListener(new MapOnTouchListener(this, mMapView){
 			@Override
 			public boolean onPinchPointersDown (MotionEvent event){
@@ -132,13 +133,17 @@ public class MainMap extends Activity implements LocationListener {
 		zoomOut = (Button) findViewById(R.id.zoomout);
 		zoomOut.setOnClickListener(zoomOutButtonHandler);
 
-		// Add dynamic layer to MapView
+		//We voegen een Graphic Layer toe bovenop de normale kaart. Hier zullen we de Festival-objecten en locatie-indicators weergeven.
+		//Ook maken we een TapListener om te zien of de gebruiker op een Graphic klikt.
 		mMapView.addLayer(new ArcGISTiledMapServiceLayer("http://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"));
 		gl = new GraphicsLayer(GraphicsLayer.RenderingMode.STATIC);
 		selectedFriendsList = new ArrayList<String>();
 		createMapViewTapList();
 		mMapView.addLayer(gl);
 		
+		//Hier begint de LocationManager met het ophalen van de locatie van de gebruiker via de Network Provider, dit kost iets meer internet dan GPS maar
+		//is veel beter gezien batterijgebruik. de requestLocationUpdates zal met deze provider om de 8000 milliseconden nieuwe info ophalen als de gebruiker 
+		//1 meter van plaats veranderd is.
 		this.locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 		Criteria criteria = new Criteria();
 		criteria.setAccuracy(Criteria.ACCURACY_FINE);
@@ -147,14 +152,19 @@ public class MainMap extends Activity implements LocationListener {
 		locationManager.requestLocationUpdates(provider, 8000, 1, this);
 		location = locationManager.getLastKnownLocation(provider);
 
+		//Hier maken we onze custom class aan. Deze gebruiken we voor alle GETS en POST en overige functies die het internet gebruiken.
 		hm = new HttpManager();
 
+		//Uit de Intent wordt een friendsList opgehaald. Dit is de lijst van vrienden die de gebruiker geselecteerd heeft in de FriendList Activity.
 		friendsList = (ArrayList<Friend>) getIntent().getSerializableExtra("friendList");
+		//Als er al een evenement gekozen is, checked de app dat hier en maakt zo nodig het evenement aan via een aSyncTask.
 		eventId = getIntent().getStringExtra("eventId");
 		if(eventId != null){
 			new loadEvent(eventId).execute("");
 		}
 
+		//Om het overzichtelijk te houden, wordt de info van de Facebook Login opgeslagen in een User object. Als er een gebruiker is
+		//en de locatie van het apparaat bekend is, wordt alles gereed gemaakt in de onLocationChanged.
 		user = new User();
 		if (getIntent().getExtras() != null) {
 			user.setMyId(getIntent().getStringExtra("id"));
@@ -171,10 +181,11 @@ public class MainMap extends Activity implements LocationListener {
 		if(location!=null){
 			onLocationChanged(location);
 		}
-		Point p = ToWebMercator(52.3, 5.45);
-		mMapView.zoomToScale(p, 9244646.48029992);
 	}
 	
+	//Deze functie wordt gebruikt als er in een andere Activity een finish() aangeroepen wordt. Dit betekend dat de app terug gaat naar de 
+	//vorige activity (de MainMap), en dan worden er resultaten gelezen van de gesloten activity (een lijst met geselecteerde vrienden of een 
+	//evenement ID). Deze variabelen worden in de MainMap opgeslagen en er worden acties ondernomen met deze nieuwe gegevens.
 	@Override 
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {     
 	  super.onActivityResult(requestCode, resultCode, data); 
@@ -189,7 +200,6 @@ public class MainMap extends Activity implements LocationListener {
 	    case (2) : { 
 		      if (resultCode == Activity.RESULT_OK) { 
 		      selectedFriendsList = data.getStringArrayListExtra("friendsToDisplay");
-		      System.out.println(selectedFriendsList.toString());
 			      if(location!=null){
 			    	  onLocationChanged(location);
 			      }
@@ -199,7 +209,7 @@ public class MainMap extends Activity implements LocationListener {
 	  } 
 	}
 
-	/* Request updates at startup */
+	//Als de app gepauzeerd was, moet de LocationManager weer de opdracht krijgen om weer aan de slag te gaan. 
 	@Override
 	public void onResume() {
 		super.onResume();
@@ -219,14 +229,19 @@ public class MainMap extends Activity implements LocationListener {
 		mMapView.pause();
 	}
 
+	//De locatie wordt opgedeeld in longitude en latitude. Deze gegevens worden opgeslagen in ons User object
 	public void onLocationChanged(Location loc) {
-		System.out.println(mMapView.getScale());
 		location = loc;
 		double lat = loc.getLatitude();
 		double lng = loc.getLongitude();
 		user.setMyLat(lat);
 		user.setMyLng(lng);
 		int[] gid = gl.getGraphicIDs();
+		while(gl.getGraphicIDs()==null){
+			gid = gl.getGraphicIDs();
+		}
+		//Alle Graphics op de kaart worden opgehaald. Deze worden nu verwijderd en zometeen weer opnieuw getekend. Als de Type attribuut gelijk is aan self of friend, wordt de deze opnieuw
+		//getekend met de nieuwe locatie van de LocationManager bij 'self' of van de nieuwe info die opgehaald is van de database.
 		if(gid!=null){
 			for(int i=0;i<gid.length;i++){
 				Graphic g = gl.getGraphic(gid[i]);
@@ -235,6 +250,7 @@ public class MainMap extends Activity implements LocationListener {
 				}
 			}
 		}
+		//De nieuwe locatie wordt opgeslagen in de database, zodat andere gebruikers jouw locatie op kunnen halen.
 		try {
 			hm.makeLoc_SelfParams(user, this);
 		} catch (ClientProtocolException e) {
@@ -243,15 +259,16 @@ public class MainMap extends Activity implements LocationListener {
 			e.printStackTrace();
 		}
 		
+		//De nieuwe locatie wordt verwerkt.
 		new createPoint(lat, lng, "self", user.getMyName(), user.getMyId()).execute();
 
+		//En de locatie van je vrienden worden hier opgehaald, en vernieuwd op de kaart
 		try {
 			JSONObject jsonObj = hm.getLocOthers(user, this);
 			JSONArray arr = jsonObj.getJSONArray("friendData");
 
 			for (int i = 0; i < arr.length(); i++) {
 				String userId = arr.getJSONObject(i).getString("userId");
-				System.out.println(userId);
 				if (selectedFriendsList.contains(userId)  && selectedFriendsList != null) {
 					String userName = "friend";
 					double latitude = Double.parseDouble(arr.getJSONObject(i)
@@ -287,7 +304,7 @@ public class MainMap extends Activity implements LocationListener {
 		Log.d("Latitude", "disable");
 	}
 
-	//Set TapList on the map to find out if we need to show a popup.
+	//TapList op de kaart zodat we weten of er een dialog moet worden laten zien met info van de aangeklikte Graphic
 	private void createMapViewTapList() {
 		mMapView.setOnSingleTapListener(new OnSingleTapListener() {
 			private static final long serialVersionUID = 1L;
@@ -316,13 +333,16 @@ public class MainMap extends Activity implements LocationListener {
 						String id1 = (String) foundGraphic.getAttributeValue("id");
 						dialogPicture.setProfileId(id1);
 						Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
-						// if button is clicked, close the custom dialog
 						dialogButton.setOnClickListener(new OnClickListener() {
 							public void onClick(View v) {
 								dialog.dismiss();
 							}
 						});
 						dialog.show();
+						
+						//Als de Graphic niet een self of friend is, betekend dat dat het een FestivalObject is. Hier wordt uitgevonden 
+						//welk FestivalObject het is door de id(locatie in de lijst met objecten op de kaart) te gebruiken om hem uit de lijst te halen.
+						//Elk FestivalObject heeft een eigen showDialog functie.
 					}else if (objects.get(Integer.parseInt((String) foundGraphic.getAttributes().get("id"))) instanceof Stage){
 						Stage s = (Stage) objects.get(Integer.parseInt((String) foundGraphic.getAttributes().get("id")));
 						s.showDialog(dialog);
@@ -357,22 +377,20 @@ public class MainMap extends Activity implements LocationListener {
 		return p;
 	}
 	
-	
+	//Gebruikt bij het veranderen van de width en height van plaatjes.
 	public Bitmap getResizedBitmap(Bitmap bm, int newHeight, int newWidth) {
 	    int width = bm.getWidth();
 	    int height = bm.getHeight();
 	    float scaleWidth = ((float) newWidth) / width;
 	    float scaleHeight = ((float) newHeight) / height;
-	    // CREATE A MATRIX FOR THE MANIPULATION
 	    Matrix matrix = new Matrix();
-	    // RESIZE THE BIT MAP
 	    matrix.postScale(scaleWidth, scaleHeight);
 
-	    // "RECREATE" THE NEW BITMAP
 	    Bitmap resizedBitmap = Bitmap.createBitmap(bm, 0, 0, width, height, matrix, false);
 	    return resizedBitmap;
 	}
 
+	//OnclickListener voor knoppen om nieuwe Activities te openen. De nodige informatie wordt opgeslagen in de intent.
 	View.OnClickListener friendButtonHandler = new View.OnClickListener() {
 		public void onClick(View v) {
 			Intent myIntent = new Intent(MainMap.this, FriendsList.class);
@@ -394,15 +412,16 @@ public class MainMap extends Activity implements LocationListener {
 		}
 	};
 
+	//De knop om de kaart te laten focussen om de gebruikers locatie. Omdat we per zoomLevel de width en height van de Graphics moeten 
+	//berekenen, houden we een level veriabele bij. Zolang de zoom niet op de gewenste hoeveelheid is, wordt het proces van opnieuw tekenen
+	//herhaald.
 	View.OnClickListener locationButtonHandler = new View.OnClickListener() {
 		public void onClick(View v) {
+			Point myPoint = ToWebMercator(location.getLongitude(), location.getLatitude());
+			mMapView.centerAt(myPoint, true);
 			if(level<17 && location != null){
 				while(level < 17){
-					mMapView.zoomin(true);
-					System.out.println(mMapView.getScale());
 					level++;
-					Point myPoint = ToWebMercator(location.getLongitude(), location.getLatitude());
-					mMapView.centerAt(myPoint, true);
 					if(objects!=null){
 						int[] grs = gl.getGraphicIDs();
 						for(int i = 0; i<grs.length;i++){
@@ -411,6 +430,7 @@ public class MainMap extends Activity implements LocationListener {
 								gl.removeGraphic(grs[i]);
 							}
 						}
+						mMapView.zoomin(true);
 						for (int i = 0; i < objects.size(); i++) {
 							FestivalObject fo = objects.get(i);
 							int width = (int) (Integer.parseInt(fo.getObj_width()));
@@ -423,20 +443,19 @@ public class MainMap extends Activity implements LocationListener {
 				}
 			}else if (level > 17 && location != null){
 				while(level > 17){
-					mMapView.zoomout(true);
-					System.out.println(mMapView.getScale());
 					level--;
-					Point myPoint = ToWebMercator(location.getLongitude(), location.getLatitude());
-					mMapView.centerAt(myPoint, true);
 					if(objects!=null){
 						int[] grs = gl.getGraphicIDs();
+						while(grs==null){
+							grs = gl.getGraphicIDs();
+						}
 						for(int i = 0; i<grs.length;i++){
 							Graphic g = gl.getGraphic(grs[i]);
 							if(g.getAttributeValue("type")!="self" || g.getAttributeValue("type")!="friend"){
 								gl.removeGraphic(grs[i]);
 							}
 						}
-					
+						mMapView.zoomout(true);
 						for (int i = 0; i < objects.size(); i++) {
 							FestivalObject fo = objects.get(i);
 							int width = (int) (Integer.parseInt(fo.getObj_width()));
@@ -451,55 +470,57 @@ public class MainMap extends Activity implements LocationListener {
 		}
 	};
 
+	//de homeButton werkt hetzelfde als de locationButton, alleen wordt de kaart hier gecentreerd op het middenpunt van de boundaries van het evenement.
 	View.OnClickListener homeButtonHandler = new View.OnClickListener() {
 		public void onClick(View v) {	
-			mMapView.centerAt(e.getCenter(), true);
-			if(level<17 && eventId!=null){
-				while(level < 17){
-					mMapView.zoomin(true);
-					System.out.println(mMapView.getScale());
-					level++;
-					if(objects!=null){
-						int[] grs = gl.getGraphicIDs();
-						for(int i = 0; i<grs.length;i++){
-							Graphic g = gl.getGraphic(grs[i]);
-							if(g.getAttributeValue("type")!="self" || g.getAttributeValue("type")!="friend"){
-								gl.removeGraphic(grs[i]);
+			if(e!=null){
+				mMapView.centerAt(e.getCenter(), true);
+				if(level<17 && eventId!=null){
+					while(level < 17){
+						level++;
+						if(objects!=null){
+							int[] grs = gl.getGraphicIDs();
+							for(int i = 0; i<grs.length;i++){
+								Graphic g = gl.getGraphic(grs[i]);
+								if(g.getAttributeValue("type")!="self" || g.getAttributeValue("type")!="friend"){
+									gl.removeGraphic(grs[i]);
+								}
 							}
-						}
-						for (int i = 0; i < objects.size(); i++) {
-							FestivalObject fo = objects.get(i);
-							int width = (int) (Integer.parseInt(fo.getObj_width()));
-							int height = (int) (Integer.parseInt(fo.getObj_height()));
-							new createEventObjectPoint(fo, width*2, height*2, i).execute(); 
-							fo.setObj_height(Integer.toString(height*2));
-							fo.setObj_width(Integer.toString(width*2));
+							mMapView.zoomin(true);
+							for (int i = 0; i < objects.size(); i++) {
+								FestivalObject fo = objects.get(i);
+								int width = (int) (Integer.parseInt(fo.getObj_width()));
+								int height = (int) (Integer.parseInt(fo.getObj_height()));
+								new createEventObjectPoint(fo, width*2, height*2, i).execute(); 
+								fo.setObj_height(Integer.toString(height*2));
+								fo.setObj_width(Integer.toString(width*2));
+							}
 						}
 					}
-				}
-			}else if (level > 17 && eventId!=null){
-				while(level > 17){
-					mMapView.zoomout(true);
-					System.out.println(mMapView.getScale());
-					level--;
-					if(objects!=null){
-						int[] grs = gl.getGraphicIDs();
-						while(grs==null){
-							grs = gl.getGraphicIDs();
-						}
-						for(int i = 0; i<grs.length;i++){
-							Graphic g = gl.getGraphic(grs[i]);
-							if(g.getAttributeValue("type")!="self" || g.getAttributeValue("type")!="friend"){
-								gl.removeGraphic(grs[i]);
+				}else if (level > 17 && eventId!=null){
+					while(level > 17){
+						mMapView.zoomout(true);
+						level--;
+						if(objects!=null){
+							int[] grs = gl.getGraphicIDs();
+							while(grs==null){
+								grs = gl.getGraphicIDs();
 							}
-						}
-						for (int i = 0; i < objects.size(); i++) {
-							FestivalObject fo = objects.get(i);
-							int width = (int) (Integer.parseInt(fo.getObj_width()));
-							int height = (int) (Integer.parseInt(fo.getObj_height()));
-							new createEventObjectPoint(fo, width/2, height/2, i).execute(); 
-							fo.setObj_height(Integer.toString(height/2));
-							fo.setObj_width(Integer.toString(width/2));
+							for(int i = 0; i<grs.length;i++){
+								Graphic g = gl.getGraphic(grs[i]);
+								if(g.getAttributeValue("type")!="self" || g.getAttributeValue("type")!="friend"){
+									gl.removeGraphic(grs[i]);
+								}
+							}
+							mMapView.zoomout(true);
+							for (int i = 0; i < objects.size(); i++) {
+								FestivalObject fo = objects.get(i);
+								int width = (int) (Integer.parseInt(fo.getObj_width()));
+								int height = (int) (Integer.parseInt(fo.getObj_height()));
+								new createEventObjectPoint(fo, width/2, height/2, i).execute(); 
+								fo.setObj_height(Integer.toString(height/2));
+								fo.setObj_width(Integer.toString(width/2));
+							}
 						}
 					}
 				}
@@ -507,11 +528,14 @@ public class MainMap extends Activity implements LocationListener {
 		}
 	};
 	
+	//De zoomin en zoomout button zorgen dat de map een 'zoomLevel' in/uit zoomed. in de Android Esri Arcgis SDK is geen manier om achter
+	//de 'current Zoomlevel' te komen, terwijl dat in de JavaScript versie wel kan. De kraampjes/podia etc. worden aangemaakt op een zoomLevel van 19 in JS.
+	//Via handmatige trial en error kwamen we erachter wat de map 'resolution' was voor level 19, dus zoomen we daarop in bij het maken laden van het evenement.
+	//Hier is de width en height 100%. Maar dit leverde weer problemen bij het uitzoomen. Dus besloten we om met de knoppen de resolutie*2 of /2 te doen, zodat de 
+	//width en height ook *2 of /2 zouden kunnen worden en tekenen we deze graphics opnieuw met die waardes.
 	View.OnClickListener zoomInButtonHandler = new View.OnClickListener() {
 		public void onClick(View v) {
 			if(level !=19 && eventId!=null){
-				mMapView.zoomin(true);
-				System.out.println(mMapView.getScale());
 				level++;
 				int[] grs = gl.getGraphicIDs();
 				for(int i = 0; i<grs.length;i++){
@@ -520,6 +544,7 @@ public class MainMap extends Activity implements LocationListener {
 						gl.removeGraphic(grs[i]);
 					}
 				}
+				mMapView.zoomin(true);
 				for (int i = 0; i < objects.size(); i++) {
 					FestivalObject fo = objects.get(i);
 					int width = (int) (Integer.parseInt(fo.getObj_width()));
@@ -534,9 +559,7 @@ public class MainMap extends Activity implements LocationListener {
 	
 	View.OnClickListener zoomOutButtonHandler = new View.OnClickListener() {
 		public void onClick(View v) {
-			if(level!=5 && eventId!=null){
-				mMapView.zoomToScale(mMapView.getCenter(), mMapView.getScale()*2);
-				System.out.println(mMapView.getScale());
+			if(level!=16 && eventId!=null){
 				level--;
 				int[] grs = gl.getGraphicIDs();
 				while(grs==null){
@@ -548,6 +571,7 @@ public class MainMap extends Activity implements LocationListener {
 						gl.removeGraphic(grs[i]);
 					}
 				}
+				mMapView.zoomToScale(mMapView.getCenter(), mMapView.getScale()*2);
 				for (int i = 0; i < objects.size(); i++) {
 					FestivalObject fo = objects.get(i);
 					int width = Integer.parseInt(fo.getObj_width())/2;
@@ -562,6 +586,7 @@ public class MainMap extends Activity implements LocationListener {
 		}
 	};
 			
+	//In deze AsyncTask maken we een nieuwe Point aan voor op de Graphic Layer. Deze points zijn voor festival objecten, zoals podia en kraampjes.
 	public class createEventObjectPoint extends AsyncTask<String, Void, String> {
 		private double lat; 
 		private double lng; 
@@ -604,6 +629,7 @@ public class MainMap extends Activity implements LocationListener {
         }
 	}
 	
+	//Hier wordt ook een Point gemaakt, maar nu voor de locatie indicator van de gebruiker en vrienden.
 	public class createPoint extends AsyncTask<String, Void, String> {
 		private double lat; 
 		private double lng; 
@@ -647,8 +673,8 @@ public class MainMap extends Activity implements LocationListener {
         }
 	}
 	
+	//Deze AsyncTask wordt gebruikt om een evenement te laden.
 	public class loadEvent extends AsyncTask<String, Void, String> {
-		
 		private String eventId;
 		
 		public loadEvent(String eventId){
@@ -658,6 +684,8 @@ public class MainMap extends Activity implements LocationListener {
         protected String doInBackground(String... params) {
         	objects = new ArrayList<FestivalObject>();
     		try {
+    			//Er wordt een JSON opgehaald met de gegevens van het evenement. Eerst worden de boundaries gezet, deze gaan in een
+    			//Envelope
     			JSONObject jsonObj = hm.getEventMapInfo(eventId, getBaseContext());
     			JSONArray arr = jsonObj.getJSONArray("bounds");
     			for (int i = 0; i < arr.length(); i++) {
@@ -676,6 +704,7 @@ public class MainMap extends Activity implements LocationListener {
     				mMapView.setMaxExtent(e);    				
     			}
 
+    			//Dan maken we een lijst met objecten. Via het type wordt bepaald wat voor object er gemaakt en in de lijst gestopt moet worden.
     			arr = jsonObj.getJSONArray("objects");
     			for (int i = 0; i < arr.length(); i++) {
     				JSONObject info = arr.getJSONObject(i);

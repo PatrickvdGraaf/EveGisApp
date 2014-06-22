@@ -17,7 +17,6 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -32,7 +31,12 @@ import crepetete.arcgis.evemapp.Event;
 
 public class EventPicker extends Activity {
 
-	private EditText eventIdET;
+	// Net als de FriendsList laat deze activity met een listview de
+	// mogenlijkheden zien, hier Evenementen. Met de zoekbutton wordt
+	// er een lijst met evenementen opgehaald. Als een van deze aangeklikt
+	// wordt, gaat de app weer terug naar de MainMap en zal loadEvent
+	// uitgevoerd worden.
+
 	private Button eventSearchB;
 	private Button back;
 	private ListView events;
@@ -54,78 +58,77 @@ public class EventPicker extends Activity {
 		eventSearchB = (Button) findViewById(R.id.BeventSearch);
 		back = (Button) findViewById(R.id.back);
 		eventsList = new ArrayList<Event>();
-		
 
 		eventSearchB.setOnClickListener(eventSearchButtonHandler);
 		back.setOnClickListener(backButtonHandler);
 
-		
 	}
 
 	View.OnClickListener eventSearchButtonHandler = new View.OnClickListener() {
 		public void onClick(View v) {
-				try {
-					JSONObject jsonObj = hm.getEvent("", getBaseContext());
-					JSONArray arr = jsonObj.getJSONArray("events");
-					for (int i = 0; i < arr.length(); i++) {
-						String name = arr.getJSONObject(i).getString("name");
-						String id = arr.getJSONObject(i).getString("id");
-						String description = arr.getJSONObject(i).getString(
-								"description");
-						String event_image_url = arr.getJSONObject(i)
-								.getString("image");
-						JSONObject startTimeArr = (JSONObject) arr
-								.getJSONObject(i).get("start_date");
-						String start_date = startTimeArr.getString("date");
-						String start_date_timezone_type = startTimeArr
-								.getString("timezone_type");
-						String start_date_timezone = startTimeArr
-								.getString("timezone");
-						JSONObject endTimeArr = (JSONObject) arr.getJSONObject(
-								i).get("end_date");
-						String end_date = endTimeArr.getString("date");
-						String end_date_timezone_type = startTimeArr
-								.getString("timezone_type");
-						String end_date_timezone = startTimeArr
-								.getString("timezone");
+			try {
+				JSONObject jsonObj = hm.getEvent("", getBaseContext());
+				JSONArray arr = jsonObj.getJSONArray("events");
+				for (int i = 0; i < arr.length(); i++) {
+					String name = arr.getJSONObject(i).getString("name");
+					String id = arr.getJSONObject(i).getString("id");
+					String description = arr.getJSONObject(i).getString(
+							"description");
+					String event_image_url = arr.getJSONObject(i).getString(
+							"image");
+					JSONObject startTimeArr = (JSONObject) arr.getJSONObject(i)
+							.get("start_date");
+					String start_date = startTimeArr.getString("date");
+					String start_date_timezone_type = startTimeArr
+							.getString("timezone_type");
+					String start_date_timezone = startTimeArr
+							.getString("timezone");
+					JSONObject endTimeArr = (JSONObject) arr.getJSONObject(i)
+							.get("end_date");
+					String end_date = endTimeArr.getString("date");
+					String end_date_timezone_type = startTimeArr
+							.getString("timezone_type");
+					String end_date_timezone = startTimeArr
+							.getString("timezone");
 
-						Event e = new Event();
-						e.setName(name);
-						e.setId(id);
-						e.setDescription(description);
-						e.setStart_date(start_date);
-						e.setImage(hm
-								.LoadImageFromWebOperations("http://web.insidion.com"
-										+ event_image_url));
-						e.setStart_date_timezone_type(start_date_timezone_type);
-						e.setStart_date_timezone(start_date_timezone);
-						e.setEnd_date(end_date);
-						e.setEnd_date_timezone_type(end_date_timezone_type);
-						e.setEnd_date_timezone(end_date_timezone);
-						eventsList.add(e);
-					}
-					if (eventsList.size() != 0) {
-						events.setAdapter(new EventListAdapter(
-								getBaseContext(), eventsList));
-						
-						events.setOnItemClickListener(new OnItemClickListener() {
-							public void onItemClick(AdapterView<?> arg0, View v, int position,long id) {
-				               Event e = eventsList.get(position);
-				       		   Intent resultIntent = new Intent();
-				       		   resultIntent.putExtra("eventId", e.getId());
-				       		   setResult(Activity.RESULT_OK, resultIntent);
-				       		   finish();
-				            }
-						});
-					}
-				} catch (ClientProtocolException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				} catch (JSONException e) {
-					e.printStackTrace();
+					Event e = new Event();
+					e.setName(name);
+					e.setId(id);
+					e.setDescription(description);
+					e.setStart_date(start_date);
+					e.setImage(hm
+							.LoadImageFromWebOperations("http://web.insidion.com"
+									+ event_image_url));
+					e.setStart_date_timezone_type(start_date_timezone_type);
+					e.setStart_date_timezone(start_date_timezone);
+					e.setEnd_date(end_date);
+					e.setEnd_date_timezone_type(end_date_timezone_type);
+					e.setEnd_date_timezone(end_date_timezone);
+					eventsList.add(e);
 				}
+				if (eventsList.size() != 0) {
+					events.setAdapter(new EventListAdapter(getBaseContext(),
+							eventsList));
+
+					events.setOnItemClickListener(new OnItemClickListener() {
+						public void onItemClick(AdapterView<?> arg0, View v,
+								int position, long id) {
+							Event e = eventsList.get(position);
+							Intent resultIntent = new Intent();
+							resultIntent.putExtra("eventId", e.getId());
+							setResult(Activity.RESULT_OK, resultIntent);
+							finish();
+						}
+					});
+				}
+			} catch (ClientProtocolException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (JSONException e) {
+				e.printStackTrace();
 			}
+		}
 	};
 
 	View.OnClickListener backButtonHandler = new View.OnClickListener() {
@@ -174,11 +177,11 @@ public class EventPicker extends Activity {
 					picture.setImageDrawable(getResources().getDrawable(
 							R.drawable.festival));
 				}
-				
+
 				if (description != null) {
 					description.setText(e.getDescription());
 				}
-				
+
 				if (date != null) {
 					date.setText(e.getStart_date() + " - " + e.getEnd_date());
 				}
@@ -191,51 +194,9 @@ public class EventPicker extends Activity {
 					drawable.getIntrinsicHeight(), Config.ARGB_8888);
 			Canvas canvas = new Canvas(bitmap);
 			drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-			drawable.draw(canvas); 
+			drawable.draw(canvas);
 
 			return bitmap;
 		}
-
-//		private Thread getInfoThread(final Event e){
-//			return new Thread(){
-//		        @Override
-//		        public void run() {
-//		            synchronized (this) {
-//						runOnUiThread(new Runnable() {
-//					        public void run() {
-//					        	date.setVisibility(View.GONE);
-//					        	Drawable d = e.getImage();
-//								Bitmap bitmap = drawableToBitmap(d);
-//								int redColors = 0;
-//								int greenColors = 0;
-//								int blueColors = 0;
-//								int pixelCount = 0;
-//
-//								for (int y = 0; y < bitmap.getHeight(); y++) {
-//									for (int x = 0; x < bitmap.getWidth(); x++) {
-//										int c = bitmap.getPixel(x, y);
-//										pixelCount++;
-//										redColors += Color.red(c);
-//										greenColors += Color.green(c);
-//										blueColors += Color.blue(c);
-//									}
-//								}
-//								// calculate average of bitmap r,g,b values
-//								int red = (redColors / pixelCount);
-//								int green = (greenColors / pixelCount);
-//								int blue = (blueColors / pixelCount);
-//
-//				
-//								date.setText(e.getStart_date() + " - " + e.getEnd_date());
-//								date.setTextColor(Color.rgb(red, green, blue));
-//								date.setVisibility(View.VISIBLE);
-//					        }
-//					    });
-//
-//					}
-//		        };
-//		    };
-//		    
-//		}
 	}
 }

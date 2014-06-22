@@ -33,6 +33,9 @@ public class FriendsList extends Activity {
 	private ArrayList<String> friendsToDisplay;
 	private ListAdapter adapter;
 
+	//In deze Activity maken we een listview met alle vrienden van Facebook die de app ook hebben. Deze vrienden kunnen geselecteerd 
+	//worden met de checkboxes. Als ze geselecteerd zijn, worden hun locaties ook weergegeven op de kaart. De friendList is opgesteld bij de Facebook login.
+
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -71,8 +74,7 @@ public class FriendsList extends Activity {
 	    });
 	}
 
-	// Adapter to put the information from the friendsList in the listView. Info
-	// found during practicing with the Facebook SDK tutorial
+	// Adapter om de informatie uit de friendList in de ListView te zetten. 
 	public class FriendListAdapter extends ArrayAdapter<Friend> {
 		public FriendListAdapter(Context context, List<Friend> friendsList) {
 			super(context, R.layout.friendlistitem, friendsList);

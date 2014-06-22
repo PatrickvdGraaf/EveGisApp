@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class User {	
+	
+	//Ons User Object heeft alle nodige info van een gebruiker.
+	
 	private String myId;
 	private String name;
 	private double myLat;

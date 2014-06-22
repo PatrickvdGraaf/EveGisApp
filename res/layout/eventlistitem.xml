@@ -21,7 +21,8 @@
             android:layout_alignParentTop="true"
             android:layout_toRightOf="@+id/eventLogo"
             android:paddingLeft="5dp"
-            android:textSize="20sp" />
+            android:textSize="20sp" 
+            android:textColor="#000000"/>
     	
     	<TextView
             android:id="@+id/eventId"
@@ -30,7 +31,6 @@
             android:layout_alignParentTop="true"
             android:layout_toRightOf="@+id/eventLogo"
             android:paddingLeft="5dp"
-            android:textColor="#FFFFFF"
             android:textSize="20sp" />
     	
     	<TextView
@@ -52,7 +52,8 @@
             android:layout_toRightOf="@+id/eventLogo"
             android:layout_below="@+id/eventDate"
             android:paddingLeft="5dp"
-            android:textSize="15sp" />
+            android:textSize="15sp" 
+            android:textColor="#000000"/>
 
 
 </RelativeLayout>
