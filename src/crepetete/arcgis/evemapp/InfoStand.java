@@ -43,8 +43,11 @@ public class InfoStand extends FestivalObject {
 		TextView text = (TextView) dialog.findViewById(R.id.text);
 
 		dialog.setTitle("Informatie");
-
-		text.setText(getDesc());
+		if(getDesc().equals("")){
+			text.setText("Geen info beschikbaar voor deze Informatie Kiosk");
+		}else{
+			text.setText(getDesc());
+		}
 		Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
 		// if button is clicked, close the custom dialog
 		dialogButton.setOnClickListener(new OnClickListener() {

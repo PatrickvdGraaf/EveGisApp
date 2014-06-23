@@ -7,13 +7,16 @@
     <LinearLayout
         android:id="@+id/linearLayout1"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:layout_marginBottom="40dp"  >
 
         <TextView
             android:id="@+id/text"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:textColor="#FFFFFF"
+            android:textSize="20sp"
             android:gravity="center_horizontal" />
         
     </LinearLayout>

@@ -214,8 +214,8 @@ public class MainMap extends Activity implements LocationListener {
 	public void onResume() {
 		super.onResume();
 		mMapView.unpause();
-		String provider = LocationManager.NETWORK_PROVIDER;
-		locationManager.requestLocationUpdates(provider, 8000, 1, this);
+//		String provider = LocationManager.NETWORK_PROVIDER;
+//		locationManager.requestLocationUpdates(provider, 8000, 1, this);
 	}
 
 	@Override
@@ -237,9 +237,6 @@ public class MainMap extends Activity implements LocationListener {
 		user.setMyLat(lat);
 		user.setMyLng(lng);
 		int[] gid = gl.getGraphicIDs();
-		while(gl.getGraphicIDs()==null){
-			gid = gl.getGraphicIDs();
-		}
 		//Alle Graphics op de kaart worden opgehaald. Deze worden nu verwijderd en zometeen weer opnieuw getekend. Als de Type attribuut gelijk is aan self of friend, wordt de deze opnieuw
 		//getekend met de nieuwe locatie van de LocationManager bij 'self' of van de nieuwe info die opgehaald is van de database.
 		if(gid!=null){
@@ -355,6 +352,9 @@ public class MainMap extends Activity implements LocationListener {
 					}else if (objects.get(Integer.parseInt((String) foundGraphic.getAttributes().get("id"))) instanceof FoodStand){
 						FoodStand fs = (FoodStand) objects.get(Integer.parseInt((String) foundGraphic.getAttributes().get("id")));
 						fs.showDialog(dialog);
+					}else if (objects.get(Integer.parseInt((String) foundGraphic.getAttributes().get("id"))) instanceof MarketStall){
+						MarketStall ms = (MarketStall) objects.get(Integer.parseInt((String) foundGraphic.getAttributes().get("id")));
+						ms.showDialog(dialog);
 					}
 				}
 			}
@@ -721,6 +721,10 @@ public class MainMap extends Activity implements LocationListener {
     				}else if(obj_type.equals("FoodStand")){
 						FoodStand fs = new FoodStand(info, i);	    				
 	    				objects.add(fs);
+    				}
+    				else if(obj_type.equals("MarketStall")){
+    					MarketStall ms = new MarketStall(info, i);	    				
+	    				objects.add(ms);
     				}
     			}
     			for (int i = 0; i < objects.size(); i++) {

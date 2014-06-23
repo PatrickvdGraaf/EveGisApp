@@ -69,8 +69,12 @@ public class Toilet extends FestivalObject{
 			dialog.setTitle("Toilet");
 		}
 		
-		text.setText("Prijs: ");
-		price.setText(String.valueOf(getPrice()));
+		text.setText("Prijs:");
+		if(String.valueOf(getPrice()).equals("") || getPrice()==null){
+			price.setText("Gratis");
+		}else{
+			price.setText(String.valueOf(getPrice()));
+		}
 		
 		Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
 		// if button is clicked, close the custom dialog

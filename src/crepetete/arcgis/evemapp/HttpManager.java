@@ -50,7 +50,7 @@ public class HttpManager {
 		httpConn.setUseCaches(false);
 
 		httpConn.setDoInput(true); // true indicates the server returns response
-
+		System.out.println(url);
 		StringBuffer requestParams = new StringBuffer();
 		if (postParams != null && postParams.size() > 0) {
 
@@ -72,6 +72,7 @@ public class HttpManager {
 			writer.flush();
 		}
 		response = readMultipleLinesRespone();
+		System.out.println(response);
 		return httpConn;
 	}
 

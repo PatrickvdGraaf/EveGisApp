@@ -78,6 +78,7 @@ public class Stage extends FestivalObject {
 		this.roster = roster;
 	}
 
+	@SuppressWarnings("deprecation")
 	public void showDialog(final Dialog dialog) {
 		dialog.setContentView(R.layout.stagedialog);
 		if (!getDesc().equals("")) {
@@ -85,46 +86,30 @@ public class Stage extends FestivalObject {
 		} else {
 			dialog.setTitle("Stage");
 		}
-		LinearLayout linearLayout = (LinearLayout) dialog
-				.findViewById(R.id.info);
-		RelativeLayout relativeLayout = (RelativeLayout) dialog
-				.findViewById(R.id.rInfo);
-		RelativeLayout.LayoutParams lp1 = new RelativeLayout.LayoutParams(
-				RelativeLayout.LayoutParams.MATCH_PARENT,
-				RelativeLayout.LayoutParams.WRAP_CONTENT);
-		lp1.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+		TextView performer = (TextView) dialog.findViewById(R.id.text);
+		TextView time = (TextView) dialog.findViewById(R.id.price);
+		
 		if (roster.size() > 0) {
+			String Sperformer = "";
+			String Stime = "";
 			for (int i = 0; i < roster.size(); i++) {
 				RosterObject ro = roster.get(i);
-				TextView performer = new TextView(dialog.getContext());
-				TextView time = new TextView(dialog.getContext());
-				performer.setText(ro.getPerformer());
-				time.setText(ro.getStartTime() + " - " + ro.getEndTime());
-				performer.setLayoutParams(new LayoutParams(
-						LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-				time.setLayoutParams(new LayoutParams(
-						LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-				linearLayout.addView(performer);
-				linearLayout.addView(time);
+				Sperformer= Sperformer + "\r\n" + ro.getPerformer();
+				Stime= Stime + "\r\n" + ro.getStartTime().getHours() + " - " + ro.getEndTime().getHours();
 			}
+			performer.setText(Sperformer);
+			time.setText(Stime);
 		} else {
-			TextView info = new TextView(dialog.getContext());
-			info.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
-					LayoutParams.WRAP_CONTENT));
-			info.setText("Geen info beschikbaar voor dit podium.");
-			linearLayout.addView(info);
+			performer.setText("Geen info beschikbaar voor dit podium.");
 		}
-		Button dialogButton = new Button(dialog.getContext());
+		
+		Button dialogButton = (Button) dialog.findViewById(R.id.dialogButtonOK);
+		// if button is clicked, close the custom dialog
 		dialogButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				dialog.dismiss();
 			}
 		});
-		dialog.setCanceledOnTouchOutside(true);
-		dialogButton.setLayoutParams(lp1);
-		dialogButton.setId(1);
-		dialogButton.setText("Sluit");
-		relativeLayout.addView(dialogButton);
 		dialog.show();
 	}
 

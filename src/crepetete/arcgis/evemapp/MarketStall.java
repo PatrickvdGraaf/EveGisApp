@@ -13,14 +13,15 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 
-public class FoodStand extends FestivalObject {
+public class MarketStall extends FestivalObject {
 	private List<Food> menu;
 
-	// De foodstand is een FestivalObject met zijn eigen constructor, een
-	// functie om het weergeven van een Dialog met informatie te regelen
-	// en een lijst met Food objecten.
+	// MarketStall verkoopt misschien niet hetzelfde als een etenstentje, maar
+	// zijn objecten hebben ook alleen maar een naam en prijs,
+	// en daarom gebruiken we voorlopig grotendeels de functies van de
+	// FoodStand, en zijn de MarketStalls Objecten Food.
 
-	public FoodStand(JSONObject info, int i) throws JSONException {
+	public MarketStall(JSONObject info, int i) throws JSONException {
 		String obj_lat = info.getString("lat");
 		String obj_lng = info.getString("lng");
 		String obj_type = info.getString("type");
@@ -68,7 +69,7 @@ public class FoodStand extends FestivalObject {
 		if (!getDesc().equals("")) {
 			dialog.setTitle(getDesc());
 		} else {
-			dialog.setTitle("Voedsel kraampje");
+			dialog.setTitle("Kraampje");
 		}
 
 		TextView name = (TextView) dialog.findViewById(R.id.text);
@@ -79,8 +80,8 @@ public class FoodStand extends FestivalObject {
 			String Sprice = "";
 			for (int i = 0; i < menu.size(); i++) {
 				Food f = menu.get(i);
-				Sname= Sname + "\r\n" + f.getName();
-				Sprice= Sprice + "\r\n" + f.getPrice();
+				Sname = Sname + "\r\n" + f.getName();
+				Sprice = Sprice + "\r\n" + f.getPrice();
 			}
 			name.setText(Sname);
 			price.setText(Sprice);
