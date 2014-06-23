@@ -214,8 +214,8 @@ public class MainMap extends Activity implements LocationListener {
 	public void onResume() {
 		super.onResume();
 		mMapView.unpause();
-//		String provider = LocationManager.NETWORK_PROVIDER;
-//		locationManager.requestLocationUpdates(provider, 8000, 1, this);
+		String provider = LocationManager.NETWORK_PROVIDER;
+		locationManager.requestLocationUpdates(provider, 8000, 1, this);
 	}
 
 	@Override
